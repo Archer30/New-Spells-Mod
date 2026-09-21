@@ -8,15 +8,15 @@
     "full": {
       "en_US": "README.md",
       "ru_RU": "readme_ru.txt",
-      "zh_CN": "readme_cn.txt"
+      "zh_CN": "readme_zh.txt"
     },
     "short": {
       "en_US": "Adds 18 spells and provides the external-spell framework.",
       "ru_RU": "Добавляет 18 заклинаний и предоставляет платформу для внешних заклинаний.",
-      "zh_CN": "添加 18 个魔法，并提供外部魔法扩展框架。"
+      "zh_CN": "添加18个魔法，并提供外部魔法扩展框架。"
     }
   },
-  "author": "AlexSpl, Rolex, Szaman, Sokiee; ERA repair and maintenance: Archer30",
+  "author": "AlexSpl, Sokiee, Archer30",
   "homepage": "http://heroescommunity.com/viewthread.php3?TID=47171",
   "icon": {
     "file": "NewSpell.ico",

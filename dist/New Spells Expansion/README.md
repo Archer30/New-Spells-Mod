@@ -1,47 +1,50 @@
 # New Spells Expansion
 
-New Spells Expansion supplies additional spells to the **New Spells** ERA mod.
-Version 1.1.0 contains **Reinforcements** (96) and **Blizzard** (97). New Spells
-must be installed and enabled, and this expansion must load after it.
+Version **1.1.0** adds two spells to the New Spells ERA mod: **Reinforcements** and **Blizzard**. They have their own spell IDs and do not replace existing spells.
 
-Its spell records use the provider-unique
-`Lang/NewSpellsExpansion.NewSpells.json` filename so loading the expansion
-cannot replace New Spells' 18-entry core JSON catalog.
+## Installation
 
-Reinforcements is a level-3 Fire spell. At no or Basic Fire Magic it selects
-the closest eligible town; at Advanced or Expert it lets the player choose any
-eligible town. It opens Heroes III's system garrison window and allows the hero
-to borrow troops. Borrowed troops may be returned unless they have been merged
-with an army stack that originally belonged to the hero.
+1. Install and enable **New Spells**. Use the accompanying **2.12.3** release.
+2. Extract this expansion into your game's `Mods` folder, enable it, and load it after New Spells.
+3. Disable the older **Reinforcements Spell** and **Blizzard Mod** packages when using this expansion.
 
-The spell allows 1, 2, 3, or 4 successful casts per day according to mastery.
-A successful cast costs 300, 200, 200, or 100 movement points respectively.
-None through Advanced require at least 300 movement before casting; Expert
-requires 200. Mana and sound are committed by New Spells only after troops were
-transferred. Closing the chooser or transferring no troops consumes nothing.
+With the expansion enabled, both spells also appear in the New Spells map-editor checklist. Restart the editor after changing enabled mods.
 
-Do not enable the legacy **Reinforcements Spell** mod at the same time. This
-expansion keeps the `NewSpells.Reinforcements` version-1 save section, so daily
-cast counts written by the formerly integrated implementation remain valid.
+## Reinforcements
 
-Reinforcements Spell was created by daemon_n from an idea by ShimmY and Master
-of puppets. Chinese localization: MoonHeart. The imported work remains under
-the included MIT license. External-provider extraction and ERA maintenance:
-Archer30.
+A level-3 Fire adventure spell (ID 96) that lets your hero borrow troops from an eligible town through the normal garrison window.
 
-Blizzard is a level-5 Water spell. Mana costs are 25/20/20/20, and damage is
-20 × Spell Power + 30/30/60/120. It hits all stacks within two hexes of the
-selected hex, including the center and friendly troops. Immunity, resistance,
-and native spell-damage modifiers apply.
+Without Fire Magic or at Basic mastery, it selects the closest eligible town. At Advanced or Expert, you can choose an eligible town. Borrowed troops can be returned unless they have been merged with a stack that originally belonged to the hero.
 
-Survivors lose 2/2/4/4 base speed, with effective speed never below 1. The
-penalty lasts for the battle, survives death and resurrection, and cannot be
-removed by Cure, Dispel, Haste or removing ordinary Slow. Recasting deals damage
-again but keeps the first Blizzard penalty. Combat AI values both damage and
-the slowing of survivors, including friendly casualties. Quick Combat excludes
-external spells, following the framework's existing policy.
+| Fire Magic | None | Basic | Advanced | Expert |
+|---|---:|---:|---:|---:|
+| Successful casts per day | 1 | 2 | 3 | 4 |
+| Movement spent per successful cast | 300 | 200 | 200 | 100 |
+| Movement required before casting | 300 | 300 | 300 | 200 |
 
-Blizzard was created by daemon_n with ShimmY; port and AI corrections by
-Archer30. Disable the legacy **Blizzard Mod** when using this expansion.
-Remove Obstacle remains spell 64, with its original animation. This release
-requires the accompanying New Spells 2.12.2 core integration update.
+Closing the selection window or transferring no troops spends no mana or movement and does not use a daily cast. Daily cast counts from the earlier integrated Reinforcements implementation remain compatible.
+
+Reinforcements is available to human players; adventure AI does not cast it.
+
+## Blizzard
+
+A level-5 Water combat spell (ID 97) that damages all stacks within two hexes of the selected hex, including the center and **friendly troops**. Normal immunity, resistance, and spell-damage modifiers apply.
+
+| Water Magic | None | Basic | Advanced | Expert |
+|---|---:|---:|---:|---:|
+| Mana cost | 25 | 20 | 20 | 20 |
+| Damage | 20 × Spell Power + 30 | 20 × Spell Power + 30 | 20 × Spell Power + 60 | 20 × Spell Power + 120 |
+| Base speed reduction | 2 | 2 | 4 | 4 |
+
+Survivors retain the speed reduction for the rest of the battle, even after death and resurrection. Effective speed cannot fall below 1. Cure, Dispel, and Haste do not remove the Blizzard penalty. Casting Blizzard again deals damage again but does not stack or replace the first speed penalty.
+
+Combat AI can cast Blizzard and considers damage, slowing, and harm to friendly troops. External spells are excluded from Quick Combat.
+
+## Credits
+
+- **Reinforcements:** daemon_n; idea by ShimmY and Master of puppets.
+- **Chinese localization:** MoonHeart.
+- **Blizzard:** daemon_n with ShimmY.
+- **ERA integration, maintenance, and Blizzard AI corrections:** Archer30.
+
+The imported Reinforcements work retains the included MIT license.

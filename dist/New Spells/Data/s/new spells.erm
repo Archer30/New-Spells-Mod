@@ -3,8 +3,6 @@ ZVSE2
 ; Engine:   ERM 2.0+
 ; Requires: ERA 3.9+
 
-!#DC(NEW_SPELLS_LAST_WOG_SPELL_ID) = 69;
-
 ; Public runtime range helper for New Spells. Spell metadata, hero spell access
 ; and text are handled natively by SS, HE:M and SN:H.
 
@@ -15,10 +13,10 @@ ZVSE2
 !?FU(GetMaxSpellId);
 !#VA(result:x);
 
-!!VR(result):S(NEW_SPELLS_LAST_WOG_SPELL_ID);
+!!VR(result):S(SPELL_LAST_WOG);
 !!UN:C4204802/-1/?(numSpells:y); [0x402902, unsigned byte]
 !!VR(lastPhysicalSpellId:y):S(numSpells) -1;
-!!VR(firstExtendedSpellId:y):S(NEW_SPELLS_LAST_WOG_SPELL_ID) +1;
+!!VR(firstExtendedSpellId:y):S(SPELL_LAST_WOG) +1;
 
 !!if&(lastPhysicalSpellId)>=(firstExtendedSpellId);
   !!re (spell:y)/(lastPhysicalSpellId)/(firstExtendedSpellId)/-1;

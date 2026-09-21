@@ -115,3 +115,14 @@ Original design and SoD implementation: Alexspl. This package retains the
 official 1.03 RC2 resources and English text while updating the ERA integration.
 Additional spell work and packaging credits are preserved for Rolex, Szaman,
 and Sokiee. ERA repair, integration, and maintenance: Archer30.
+
+## Original mod credits
+
+- Author: AlexSpl
+- Graphics: Rolex
+- ERA adaptation: sokiee, daemon_n
+- Russian translation: Panda Bei, daemon_n
+- Original mod languages: English, Russian
+- Current ERA repair and maintenance: Archer30
+
+Additional spell contributions: Szaman (Hour of Power and Golden Touch).

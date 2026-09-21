@@ -5,8 +5,8 @@ code, integration changes, SDK/header material, and game-mod assets with
 separate provenance. No repository-wide license is inferred from the license
 of one component.
 
-- Original New Spells: Alexspl; ERA adaptation credits retained in the package
-  metadata include Rolex, Szaman, and Sokiee. Original discussion:
+- Original New Spells: AlexSpl; graphics: Rolex; ERA adaptation: sokiee and
+  daemon_n; Russian translation: Panda Bei and daemon_n. Original discussion:
   http://heroescommunity.com/viewthread.php3?TID=47171
 - ERA integration and maintenance: Archer30.
 - Reinforcements Spell 2.3: daemon_n, idea by ShimmY and Master of puppets.
@@ -26,3 +26,14 @@ whole repository solely because the Reinforcements donor uses MIT.
 
 The downloaded comparison archives and complete local game/test copies are
 excluded from Git. This repository is not a distribution of the Heroes III game.
+
+## Original mod credits
+
+- Author: AlexSpl
+- Graphics: Rolex
+- ERA adaptation: sokiee, daemon_n
+- Russian translation: Panda Bei, daemon_n
+- Original mod languages: English, Russian
+- Current ERA repair and maintenance: Archer30
+
+Additional spell contributions: Szaman (Hour of Power and Golden Touch).

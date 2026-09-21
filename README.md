@@ -123,7 +123,7 @@ with compile-time checks for every critical size and offset. See
 
 ## Provenance
 
-- Original New Spells implementation: Alexspl
+- Original New Spells implementation: AlexSpl
 - Official comparison baseline: New Spells 1.03 RC2 for SoD
 - Original discussion: http://heroescommunity.com/viewthread.php3?TID=47171
 - New Spells Expansion / Reinforcements Spell: daemon_n; idea by ShimmY and
@@ -132,3 +132,14 @@ with compile-time checks for every critical size and offset. See
 
 Downloaded comparison archives are preserved outside the repository as described
 in `docs/REPOSITORY_LAYOUT.md`; they are not required to build the plugin.
+
+## Original mod credits
+
+- Author: AlexSpl
+- Graphics: Rolex
+- ERA adaptation: sokiee, daemon_n
+- Russian translation: Panda Bei, daemon_n
+- Original mod languages: English, Russian
+- Current ERA repair and maintenance: Archer30
+
+Additional spell contributions: Szaman (Hour of Power and Golden Touch).

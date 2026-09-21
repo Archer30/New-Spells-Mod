@@ -8,7 +8,7 @@
     "full": {
       "en_US": "README.md",
       "ru_RU": "readme_ru.md",
-      "zh_CN": "readme_cn.md"
+      "zh_CN": "readme_zh.md"
     },
     "short": {
       "en_US": "Adds Reinforcements (96) and Blizzard (97) through New Spells.",
@@ -16,7 +16,7 @@
       "zh_CN": "通过新魔法框架添加火线增援（96）和暴风雪（97）。"
     }
   },
-  "author": "daemon_n; idea: ShimmY, Master of puppets; Chinese localization: MoonHeart; ERA extraction and maintenance: Archer30; Blizzard: daemon_n, ShimmY",
+  "author": "Archer30",
   "homepage": "https://github.com/ERA-Projects/reinforcements-spell",
   "icon": {
     "file": "Reinforcements.ico",
