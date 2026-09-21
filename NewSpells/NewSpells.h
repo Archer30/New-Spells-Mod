@@ -72,7 +72,7 @@ typedef exe_bitset<ORIG_SPELLS_NUM> _SpellBitset70_;
 typedef exe_bitset<SPELLS_MAX> _SpellBitset_;
 
 static_assert(sizeof(_SpellBitset70_) == 0x0C, "Heroes III 70-bit spell mask ABI mismatch");
-static_assert(sizeof(_SpellBitset_) == 0x10, "Extended spell mask ABI mismatch");
+static_assert(sizeof(_SpellBitset_) == SPELLS_MAX / 8, "Extended spell mask ABI mismatch");
 static_assert(std::is_trivially_copyable<_SpellBitset_>::value,
    "Executable spell masks must remain trivial binary views");
 static_assert(sizeof(_Spell_) == 0x88, "WoG spell-record ABI mismatch");

@@ -86,7 +86,9 @@ try {
         if ($live[$i] -ne $mapped[$handler + $i]) { throw 'Loaded handler differs from the deployed release.' }
     }
     Write-Output 'Loaded BM:G handler matches the deployed release after PE relocation.'
-    $count = (Read-LiveBytes 0x402902 1)[0]
+    $startupLog = Get-Content -LiteralPath (Join-Path $GameDirectory 'Debug\Era\log.txt') -Raw
+    if ($startupLog -notmatch 'Spell count (\d+)') { throw 'Startup log has no spell count.' }
+    $count = [int]$Matches[1]
     if ($count -ne $ExpectedSpellCount) { throw "Unexpected spell count $count." }
     $hook = Read-LiveBytes 0x75F334 5
     if ($hook[0] -ne 0xE9) { throw 'BM:G LoHook is not installed.' }

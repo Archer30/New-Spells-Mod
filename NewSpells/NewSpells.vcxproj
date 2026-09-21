@@ -113,6 +113,7 @@
     <ClInclude Include="HoMM3API.h" />
     <ClInclude Include="NewSpells.h" />
     <ClInclude Include="NsHeroSpells.h" />
+    <ClInclude Include="NsSpellBounds.h" />
     <ClInclude Include="NewSpellsAiInterop.h" />
     <ClInclude Include="NewSpellsProviderApi.h" />
     <ClInclude Include="NewSpellsMapFormat.h" />

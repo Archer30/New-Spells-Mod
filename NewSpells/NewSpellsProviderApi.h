@@ -8,7 +8,7 @@
    "HD.Plugin.H3.NewSpells.SpellProviderRegistry.v1"
 #define NEWSPELLS_PROVIDER_ABI_VERSION_V1 1u
 #define NEWSPELLS_EXTERNAL_SPELL_FIRST_ID 96
-#define NEWSPELLS_EXTERNAL_SPELL_LAST_ID 126
+#define NEWSPELLS_EXTERNAL_SPELL_LAST_ID 199
 
 /* Every callback returns one of these values. Unknown values fail closed. */
 enum NewSpellsProviderResultV1

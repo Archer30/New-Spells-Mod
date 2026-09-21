@@ -892,6 +892,7 @@ void playSound(const char* fileName)
 int forceCappedDuration[SPELLS_MAX];
 
 #include "NsHeroSpells.h"
+#include "NsSpellBounds.h"
 
 // Game Bug Fixes Extended owns the six-byte instruction at 0x56B344 in ERA
 // to prevent AI Town Portal on cursed ground. The old NewSpells code rewrote
@@ -1444,7 +1445,7 @@ int getConfiguredSpellCount()
    // Count 128 would become -128, so 127 is the largest profile that can be
    // enabled without rewriting every compare/branch pair. The sidecars retain
    // 128 slots and WoG retains all 200 metadata records.
-   const int maxActiveSpellId = SPELLS_MAX - 2;
+   const int maxActiveSpellId = NS_MAX_SPELL_ID;
    int highestDeclaredId = clampConfigInt(configuredMaxId,
       DEFAULT_SPELLS_NUM - 1, maxActiveSpellId);
    for (int spellId = NEWSPELLS_EXTERNAL_SPELL_FIRST_ID;
@@ -1457,10 +1458,8 @@ int getConfiguredSpellCount()
 
 int getLiveSpellCount()
 {
-   const int count = *reinterpret_cast<const unsigned char*>(0x402902);
-   return count == activeSpellCount && count >= ORIG_SPELLS_NUM &&
-      count < SPELLS_MAX && count <= WOG_SPELLS_MAX
-      ? count : 0;
+   return nsBoundHooksAttempted && activeSpellCount >= ORIG_SPELLS_NUM &&
+      activeSpellCount <= WOG_SPELLS_MAX ? activeSpellCount : 0;
 }
 
 _Spell_* canonicalSpellTable = 0;
@@ -2492,10 +2491,7 @@ bool installCoreNativeErmHooks()
       _PI->CreateLoHook(0x7222EF, ermCreatureSpellInfoBound),
       _PI->CreateLoHook(0x7224F8, ermCreatureSpellInfoBound),
       _PI->CreateLoHook(0x7227CC, ermCreatureSpellInfoBound),
-      _PI->CreateHiHook(0x7149AF, SPLICE_, EXTENDED_, CDECL_, getBoundedWogSpellName),
-      // Publish the expanded count only after every native receiver callback
-      // is installed. A partial rollback therefore leaves the stock count 70.
-      _PI->CreateBytePatch(0x402902, SPELLS_NUM)
+      _PI->CreateHiHook(0x7149AF, SPLICE_, EXTENDED_, CDECL_, getBoundedWogSpellName)
    };
 
    const std::size_t hookCount = sizeof(hooks) / sizeof(hooks[0]);
@@ -2518,8 +2514,7 @@ bool installCoreNativeErmHooks()
          break;
    }
 
-   const bool success = appliedCount == hookCount &&
-      *reinterpret_cast<const unsigned char*>(0x402902) == activeSpellCount;
+   const bool success = appliedCount == hookCount;
    if (success)
       return true;
 
@@ -5848,8 +5843,16 @@ int __stdcall castBattleSpell(LoHook* h, HookContext* c)
 // two same-owner LoHooks.
 int __stdcall battleSpellDispatcher(LoHook* h, HookContext* c)
 {
-   const int castResult = castBattleSpell(h, c);
-   return castResult == EXEC_DEFAULT ? SummonCreatures(h, c) : castResult;
+   int result = castBattleSpell(h, c);
+   if (result == EXEC_DEFAULT)
+      result = SummonCreatures(h, c);
+   if (result != EXEC_DEFAULT)
+      return result;
+
+   c->eax = c->edx - SPELL_QUICKSAND;
+   c->return_address = (unsigned int)c->eax > (unsigned int)(activeSpellCount - 1 - SPELL_QUICKSAND)
+      ? 0x5A2368 : 0x5A0655;
+   return NO_EXEC_DEFAULT;
 }
 
 int __stdcall spellTableAHelper(LoHook* h, HookContext* c)
@@ -6886,6 +6889,17 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
             return FALSE;
          }
 
+         if (!installSpellBoundHooks())
+            Era::WriteLog("NewSpells", "Spell bounds",
+               "Not every spell-count compare is hooked; the unhooked sites keep the exe's bound of 70.");
+         if (Era::SetAssocVarIntValue)
+            Era::SetAssocVarIntValue("NewSpells.SpellCount", activeSpellCount);
+         {
+            char countText[32];
+            sprintf(countText, "Spell count %d", activeSpellCount);
+            Era::WriteLog("NewSpells", "Startup", countText);
+         }
+
          Era::RegisterHandler(saveSpellTableVersion, "OnSavegameWrite");
          Era::RegisterHandler(loadSpellTableVersion, "OnSavegameRead");
          Era::RegisterHandler(saveMapDisabledSpells, "OnSavegameWrite");
@@ -6897,13 +6911,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // ===============================================================
          // ------------------------- Battle AI ---------------------------
          // ---------------------------------------------------------------
-         _PI->WriteByte       (0x41FC91, SPELLS_NUM); // CombatManager::get_area_effect()
          // Quick-combat's native simulator knows only the core spell
          // implementations. Keep provider slots out of its flag-only loop;
          // provider tactical AI is callback-owned.
          _PI->WriteDword      (0x425E98,
             DEFAULT_SPELLS_NUM * sizeof(_Spell_));
-         _PI->WriteByte       (0x427085, SPELLS_NUM);
          _PI->WriteDword      (0x432A43, SPELLS_NUM * sizeof(_Spell_));
          _PI->WriteDword      (0x432D1E, SPELLS_NUM * sizeof(_Spell_));
 		 // ---------------------------------------------------------------
@@ -6963,20 +6975,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteDword      (0x447CC8, SPELLS_NUM * sizeof(_Spell_));
          
          // Cheats in battle
-         _PI->WriteByte       (0x471C57, SPELLS_NUM);
          
-         _PI->WriteByte       (0x4864B0, SPELLS_NUM);
                   
          // Scholar Secondary Skill
-         _PI->WriteByte       (0x4A2743, SPELLS_NUM);
 
 		 // Load Game
-         _PI->WriteByte       (0x48A34B, SPELLS_NUM);
 
-         _PI->WriteByte       (0x4E67AC, SPELLS_NUM);
+         _PI->WriteByte       (0x4E67AC, DEFAULT_SPELLS_NUM);
          
          // Cheat Menu?
-         _PI->WriteByte       (0x4F508B, SPELLS_NUM);
          _PI->WriteDword      (0x4F50CE, SPELLS_NUM * sizeof(_Spell_));
          _PI->WriteDword      (0x4F5114, SPELLS_NUM * sizeof(_Spell_));
                            
@@ -6990,9 +6997,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		 _PI->WriteHiHook     (0x4C9260, SPLICE_, DIRECT_, THISCALL_, FillShrine);
 
 		 // Pyramids
-         _PI->WriteByte       (0x4C170D, SPELLS_NUM);
                  
-         _PI->WriteByte       (0x4CEC4F, SPELLS_NUM);
+         _PI->WriteByte       (0x4CEC4F, DEFAULT_SPELLS_NUM);
          
          // Tome of Air Magic
          _PI->WriteDword      (0x4D962D, DEFAULT_SPELLS_NUM * sizeof(_Spell_));
@@ -7006,7 +7012,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteDword      (0x4D9771, DEFAULT_SPELLS_NUM * sizeof(_Spell_));
          
          // Scholars
-         _PI->WriteByte       (0x5012B7, SPELLS_NUM);
          
          _PI->WriteDword      (0x527B08, SPELLS_NUM * sizeof(_Spell_));
 		 
@@ -7016,7 +7021,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          
          // RMG Spell Scrolls
          _PI->WriteDword      (0x5353D5, SPELLS_NUM);
-         _PI->WriteByte       (0x53542B, SPELLS_NUM);
          _PI->WriteLoHook     (0x5353E8, RMGDisableSpellsInScrollsA);
          _PI->WriteLoHook     (0x535417, RMGDisableSpellsInScrollsB);
          
@@ -7039,16 +7043,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		 // ===============================================================
          // -------------------------- Mage Guild -------------------------
          // ---------------------------------------------------------------
-		 _PI->WriteByte       (0x5BEA2C, SPELLS_NUM);
-         _PI->WriteByte       (0x5BEA70, SPELLS_NUM);
-         _PI->WriteByte       (0x5BEAAD, SPELLS_NUM);
          _PI->WriteDword      (0x5BEAFE, SPELLS_NUM * sizeof(_Spell_));
          _PI->WriteDword      (0x5BEB2C, SPELLS_NUM * sizeof(_Spell_));
-         _PI->WriteByte       (0x5BEB48, SPELLS_NUM);
-         _PI->WriteByte       (0x5BEB71, SPELLS_NUM);
-         _PI->WriteByte       (0x5BEBB2, SPELLS_NUM);
          _PI->WriteDword      (0x5BEC05, SPELLS_NUM * sizeof(_Spell_));
-         _PI->WriteByte       (0x5BEC1B, SPELLS_NUM);
 		 
 		 // Town setup
 		 _PI->WriteByte       (0x5BEA05, 0x30); // Now we have the equivalent of std::bitset<SPELLS_MAX> on the stack
@@ -7083,15 +7080,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // ===============================================================
          // -------------------------- Combat -----------------------------
          // ---------------------------------------------------------------
-         _PI->WriteByte       (0x502405, SPELLS_NUM);
-         _PI->WriteByte       (0x502451, SPELLS_NUM);
-         _PI->WriteByte       (0x5024CF, SPELLS_NUM);
-         _PI->WriteByte       (0x502515, SPELLS_NUM);
-         _PI->WriteByte       (0x502E62, SPELLS_NUM);
-         _PI->WriteByte       (0x502EB7, SPELLS_NUM);
-         _PI->WriteByte       (0x59EFD9, SPELLS_NUM - 1 - ORIG_ADVSPELLS_NUM);
          _PI->WriteDword      (0x59EFE4, (int)&spellIndirectTableA);
-         _PI->WriteByte       (0x5A064E, SPELLS_NUM - 1 - ORIG_ADVSPELLS_NUM);
          _PI->WriteDword      (0x5A0659, (int)&spellIndirectTableB);
 
 		 combatProviderTargetRoutingInstalled =
@@ -7114,14 +7103,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			_PI->WriteLoHook(0x46FE3E, notifyPlayerAfterBattle);
 		          
 		 // army::SetSpellInfluence() switch
-		 _PI->WriteByte       (0x4446EA, SPELLS_NUM - 1 - SPELL_SHIELD);
          _PI->WriteDword      (0x4446FD, (int)&SetSpellInfluenceTable);
          
-		 _PI->WriteByte       (0x444262, SPELLS_NUM - 1 - SPELL_WEAKNESS);
          _PI->WriteDword      (0x44427A, (int)&spellIndirectTableD);
-         _PI->WriteByte       (0x44A259, SPELLS_NUM - 1 - SPELL_LIGHTNING_BOLT);
          _PI->WriteDword      (0x44A264, (int)&spellIndirectTableE);
-         _PI->WriteByte       (0x43B788, SPELLS_NUM - 1 - SPELL_EARTHQUAKE);
          _PI->WriteDword      (0x43B793, (int)&spellIndirectTableF);
          const bool combatAiFunctionHookInstalled = _PI->WriteHiHook(
             0x43B2E0, SPLICE_, EXTENDED_, THISCALL_,
@@ -7138,12 +7123,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteDword      (0x43787A, 162);
          _PI->WriteDword      (0x43D314, 162);
          _PI->WriteDword      (0x43E3DF, SPELLS_NUM);
-         _PI->WriteByte       (0x443F63, SPELLS_NUM);
-         _PI->WriteByte       (0x446F03, SPELLS_NUM);
-         _PI->WriteByte       (0x5A1907, SPELLS_NUM);
-         _PI->WriteByte       (0x5A1995, SPELLS_NUM);
-         _PI->WriteByte       (0x5A84C8, SPELLS_NUM);
-         _PI->WriteByte       (0x5A852F, SPELLS_NUM);
          // ===============================================================
         
          // Fear, Poison, Disease, Age, ...
@@ -7233,11 +7212,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
          // Death Cloud, Incineration
 		 _PI->WriteLoHook     (0x41FBEB, get_area_effect_new);
-		 // The final byte is the bound already written above for the active
-         // provider catalog. Comparing it with a fixed core-only 0x55 disables
-         // all external combat capabilities as soon as IDs 96+ are declared.
-         const unsigned char battleDispatcherSignature[] = {0x8D, 0x42, 0xF6, 0x83, 0xF8,
-            static_cast<unsigned char>(SPELLS_NUM - 1 - ORIG_ADVSPELLS_NUM)};
+         // The exe's switch spans spells 10..80: "lea eax, [edx-10]" then "cmp eax, 70".
+         const unsigned char battleDispatcherSignature[] = {0x8D, 0x42, 0xF6, 0x83, 0xF8, 0x46};
 		 if (memcmp(reinterpret_cast<const void*>(0x5A0649), battleDispatcherSignature,
 				sizeof(battleDispatcherSignature)) == 0)
 			combatProviderDispatcherInstalled =
