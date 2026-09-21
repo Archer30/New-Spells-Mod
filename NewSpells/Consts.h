@@ -5,8 +5,6 @@
 #define ORIG_ADVSPELLS_NUM 10
 #define ORIG_SPELLS_NUM 70
 
-#define SPELL_MEMORIZED 1
-#define SPELL_TEMPORARY 2
 
 #define ANIMS_MAX 4096
 #define ANIMS_NUM 91

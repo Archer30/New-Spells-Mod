@@ -891,6 +891,8 @@ void playSound(const char* fileName)
 
 int forceCappedDuration[SPELLS_MAX];
 
+#include "NsHeroSpells.h"
+
 // Game Bug Fixes Extended owns the six-byte instruction at 0x56B344 in ERA
 // to prevent AI Town Portal on cursed ground. The old NewSpells code rewrote
 // that instruction's displacement at 0x56B346, corrupting whichever patch was
@@ -898,10 +900,8 @@ int forceCappedDuration[SPELLS_MAX];
 // with the value from the expanded spellbook without touching the other hook.
 int __stdcall aiTownPortalExpandedSpellbook(LoHook* h, HookContext* c)
 {
-   const hero* Hero = reinterpret_cast<const hero*>(c->esi);
-   const unsigned char hasTownPortal = Hero
-      ? static_cast<unsigned char>(Hero->in_spellbook[SPELL_TOWN_PORTAL])
-      : 0;
+   hero* Hero = reinterpret_cast<hero*>(c->esi);
+   const unsigned char hasTownPortal = Hero ? heroAvailableSpell(Hero, SPELL_TOWN_PORTAL) : 0;
 
    c->eax = (c->eax & ~0xFF) | hasTownPortal;
    return EXEC_DEFAULT;
@@ -1754,8 +1754,7 @@ int __stdcall ermHeroSpellQuery(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
-   *reinterpret_cast<unsigned char*>(0x91F2E0) =
-      Hero->in_spellbook[spellId] != 0;
+   *reinterpret_cast<unsigned char*>(0x91F2E0) = heroInSpellbook(Hero, spellId) != 0;
    c->return_address = 0x7459F6;
    return NO_EXEC_DEFAULT;
 }
@@ -1773,15 +1772,14 @@ int __stdcall ermHeroSpellSet(LoHook* h, HookContext* c)
    }
 
    const int applyResult = CALL_4(int, __cdecl, 0x74195D,
-      &Hero->in_spellbook[spellId], 1, message, 1);
+      &heroAvailableSpell(Hero, spellId), 1, message, 1);
    if (applyResult)
    {
       c->return_address = 0x74943B;
       return NO_EXEC_DEFAULT;
    }
 
-   Hero->in_spellbook[spellId] = Hero->in_spellbook[spellId]
-      ? SPELL_MEMORIZED : 0;
+   heroInSpellbook(Hero, spellId) = heroAvailableSpell(Hero, spellId) != 0;
    c->return_address = 0x7459F6;
    return NO_EXEC_DEFAULT;
 }
@@ -2594,7 +2592,7 @@ int32_t __stdcall queryHeroSpellForAi(const void* combatManager,
    if (!opponentArmy)
       return 0;
 
-   result.known = Hero->in_spellbook[spellId] != 0;
+   result.known = heroAvailableSpell(Hero, spellId) != 0;
    // New Spells moves the complete 140-entry disabled-spell array to Game+4.
    result.enabled = NewSpellsAiInteropDetail::
       SpellEnabledFromUnifiedGameState(pGame, spellId);
@@ -3023,7 +3021,10 @@ void Game::SetSpellsAvailability()
 void hero::AddSpell(int whichSpell)
 {
    if (isDefinedHeroSpell(whichSpell))
-      this->in_spellbook[whichSpell] = SPELL_MEMORIZED;
+   {
+      heroInSpellbook(this, whichSpell) = 1;
+      heroAvailableSpell(this, whichSpell) = 1;
+   }
 }
 
 void __fastcall AddSpell(hero* Hero, int unused_edx, int whichSpell)
@@ -3422,6 +3423,8 @@ void __stdcall beforeNewDayStart(HiHook* h, Game* game)
 void __stdcall beforeNewGameStart(HiHook* h, Game* game, int a2)
 {
    initHeroAdvInfoEx();
+   memset(&heroSpellsEx, 0, sizeof(heroSpellsEx));
+   memset(&crossoverSpellsEx, 0, sizeof(crossoverSpellsEx));
    loadMapDisabledSpells();
    CALL_2(void, __thiscall, h->GetDefaultFunc(), game, a2);
 }
@@ -6303,7 +6306,7 @@ void __stdcall evaluateExternalAdventureSpellsForAi(HiHook* h, hero* Hero,
              (slot->descriptor.capabilities &
               (NEWSPELLS_CAP_ADVENTURE_CAST | NEWSPELLS_CAP_ADVENTURE_AI)) !=
              (NEWSPELLS_CAP_ADVENTURE_CAST | NEWSPELLS_CAP_ADVENTURE_AI) ||
-             !isDefinedHeroSpell(spellId) || !Hero->in_spellbook[spellId] ||
+             !isDefinedHeroSpell(spellId) || !heroAvailableSpell(Hero, spellId) ||
              pGame->SpellDisabled(static_cast<SpellID>(spellId)))
             continue;
 
@@ -6632,16 +6635,14 @@ void addArtifactSpells(hero* const Hero, const int artifactId)
 
    for (int spellId = 0; spellId < activeSpellCount; ++spellId)
       if ((spells[spellId] || artifactGrantsExtendedSpell(artifactId, spellId)) &&
-          isDefinedHeroSpell(spellId) &&
-          !Hero->in_spellbook[spellId])
-         Hero->in_spellbook[spellId] = SPELL_TEMPORARY;
+          isDefinedHeroSpell(spellId))
+         heroAvailableSpell(Hero, spellId) = 1;
 }
 
 void hero::UpdateSpellsFromArtifacts()
 {
    for (int iSpell = 0; iSpell < SPELLS_MAX; ++iSpell)
-	  if (this->in_spellbook[iSpell] > SPELL_MEMORIZED)
-		 this->in_spellbook[iSpell] = 0;
+	  heroAvailableSpell(this, iSpell) = heroInSpellbook(this, iSpell);
 
    for (int iSlot = 0; iSlot < 19; ++iSlot)
    {
@@ -6651,8 +6652,8 @@ void hero::UpdateSpellsFromArtifacts()
          if (artifactId == eArtifactSpellScroll)
          {
 			const int spellId = this->equipped[iSlot].spell;
-			if (isDefinedHeroSpell(spellId) && !this->in_spellbook[spellId])
-			   this->in_spellbook[spellId] = SPELL_TEMPORARY;
+			if (isDefinedHeroSpell(spellId))
+			   heroAvailableSpell(this, spellId) = 1;
          }
          else if (o_ArtInfo[artifactId].new_spell)
          {
@@ -6892,37 +6893,24 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // Populate WoG's canonical 200-record spell table after text/media init.
          _PI->WriteLoHook     (0x4EE1C1, afterInit);
                
-         // "(Already learned)" Text. Game Bug Fixes Extended already changes
-         // this displacement on current ERA; do not overlap its raw patch.
-         const unsigned char alreadyLearnedOriginal[] = {0x8A, 0x8C, 0x03, 0x30, 0x04, 0x00, 0x00};
-         if (memcmp(reinterpret_cast<const void*>(0x40D979), alreadyLearnedOriginal,
-                    sizeof(alreadyLearnedOriginal)) == 0)
-            _PI->WriteWord(0x40D97C, 0x03EA);
+         writeHeroSpellHooks();
          // ===============================================================
          // ------------------------- Battle AI ---------------------------
          // ---------------------------------------------------------------
-         _PI->WriteDword      (0x41FBDF, 0x3EA);
          _PI->WriteByte       (0x41FC91, SPELLS_NUM); // CombatManager::get_area_effect()
-         _PI->WriteDword      (0x425C72, 0x3EA);
          // Quick-combat's native simulator knows only the core spell
          // implementations. Keep provider slots out of its flag-only loop;
          // provider tactical AI is callback-owned.
          _PI->WriteDword      (0x425E98,
             DEFAULT_SPELLS_NUM * sizeof(_Spell_));
-         _PI->WriteDword      (0x427039, 0x3EA);
-         _PI->WriteDword      (0x427044, 0x3EA);
          _PI->WriteByte       (0x427085, SPELLS_NUM);
-         _PI->WriteDword      (0x4329C1, 0x3EA);
          _PI->WriteDword      (0x432A43, SPELLS_NUM * sizeof(_Spell_));
-         _PI->WriteDword      (0x432CDE, 0x3EA);
          _PI->WriteDword      (0x432D1E, SPELLS_NUM * sizeof(_Spell_));
 		 // ---------------------------------------------------------------
          
          // ===============================================================
          // ----------------------- Adventure AI --------------------------
          // ---------------------------------------------------------------
-         _PI->WriteDword      (0x430AE5, 0x3EA + SPELL_DIMENSION_DOOR);
-         _PI->WriteDword      (0x4E57CC, 0x3EA + SPELL_SUMMON_BOAT);
          // 0x56B344..0x56B349 is owned by the ERA cursed-ground AI fix.
          // 0x56B34A begins the adjacent `test al, al` instruction.
          const unsigned char aiTownPortalTest[] = {0x84, 0xC0};
@@ -6931,11 +6919,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          {
             _PI->WriteLoHook(0x56B34A, aiTownPortalExpandedSpellbook);
          }
-         _PI->WriteDword      (0x56B7EA, 0x3EA + SPELL_DIMENSION_DOOR);
-         _PI->WriteDword      (0x56B93F, 0x3EA + SPELL_FLY);
-         _PI->WriteDword      (0x56B99A, 0x3EA + SPELL_WATER_WALK);
 		 // AI Value of Pyramid
-         _PI->WriteDword      (0x52A97A, 0x3EA);
          _PI->WriteDword      (0x52A9B6, SPELLS_NUM * sizeof(_Spell_));
          const unsigned char moveHeroAiSignature[] =
             {0x55, 0x8B, 0xEC, 0x83, 0xEC, 0x28, 0x53, 0x56,
@@ -6956,10 +6940,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // Master Genie AI Spell Weighting
          _PI->WriteDword      (0x43C21B, SPELLS_NUM * sizeof(_Spell_));
          // AI Quick Battle
-         _PI->WriteDword      (0x433026, 0x3EA);
-         _PI->WriteDword      (0x433719, 0x3EA);
-         _PI->WriteDword      (0x43940C, 0x3EA);
-         _PI->WriteDword      (0x43C561, 0x3EA);
 		 // Treat Fear as an incapacitating effect during AI planning. Install
 		 // only on the verified SoD/ERA instruction profile.
 		 const unsigned char fearAiSite1[] = {0x8A, 0x56, 0x1D};
@@ -6984,10 +6964,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          
          // Cheats in battle
          _PI->WriteByte       (0x471C57, SPELLS_NUM);
-         
-         // Clear Hero.spell[140] (optional)
-         _PI->WriteDword      (0x48647A, 0x23);
-         _PI->WriteJmp        (0x486485, 0x486498);
          
          _PI->WriteByte       (0x4864B0, SPELLS_NUM);
                   
@@ -7018,10 +6994,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
                  
          _PI->WriteByte       (0x4CEC4F, SPELLS_NUM);
          
-         // Clear Hero.spell[140] (optional)
-         _PI->WriteDword      (0x4D8F2E, 0x23);
-         _PI->WriteJmp        (0x4D8F36, 0x4D8F49);
-         
          // Tome of Air Magic
          _PI->WriteDword      (0x4D962D, DEFAULT_SPELLS_NUM * sizeof(_Spell_));
          // Tome of Fire Magic
@@ -7036,7 +7008,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // Scholars
          _PI->WriteByte       (0x5012B7, SPELLS_NUM);
          
-         _PI->WriteDword      (0x527ACB, 0x3EA);
          _PI->WriteDword      (0x527B08, SPELLS_NUM * sizeof(_Spell_));
 		 
 		 // RMG
@@ -7052,7 +7023,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // Spell Book
          _PI->WriteDword      (0x59CCDD, SPELLS_NUM * sizeof(_BookSpell_));
 		 _PI->WriteDword      (0x59CD36, SPELLS_NUM * sizeof(_BookSpell_));
-		 _PI->WriteDword      (0x59CD5E, 0x3EA);
          _PI->WriteDword      (0x59CDBF, SPELLS_NUM * sizeof(_Spell_));
 
 		 // Add Spell
@@ -7100,13 +7070,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteDword      (0x5D7464, SPELLS_NUM);
          
          // ===============================================================
-         // ------------------ New Hero.spell[140] field ------------------
-         // ---------------------------------------------------------------
-         _PI->WriteCodePatch  (0x4D8B72, "%n", 8);
-         _PI->WriteCodePatch  (0x4D8F7F, "%n", 8);
-         // ===============================================================
-
-         // ===============================================================
          // ------------- New Game.disabled_spells[140] field -------------
          // ---------------------------------------------------------------
          _PI->WriteByte       (0x4C16ED, 4); // Pyramids
@@ -7116,7 +7079,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteByte       (0x5BEA55, 4); // Mage Guild
          // ===============================================================
                          
-         _PI->WriteDword      (0x52AE1C, 0x3EA);
 
          // ===============================================================
          // -------------------------- Combat -----------------------------
