@@ -1,0 +1,46 @@
+{
+  "era": {
+    "spells": {
+      "151": {
+        "type": "1",
+        "soundName": "Sysmsg.wav",
+        "animationIndex": "0",
+        "flags": "266261",
+        "name": "Fortitude (provider)",
+        "shortName": "Fortitude",
+        "level": "4",
+        "school": "4",
+        "spEffect": "0",
+        "manaCost": { "0": "20", "1": "16", "2": "16", "3": "16" },
+        "baseValue": { "0": "130", "1": "130", "2": "140", "3": "150" },
+        "chanceToGet": {
+          "0": "10", "1": "10", "2": "10", "3": "10", "4": "10",
+          "5": "10", "6": "0", "7": "0", "8": "5"
+        },
+        "aiValue": { "0": "20", "1": "20", "2": "40", "3": "60" },
+        "description": {
+          "0": "{Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "1": "{Basic Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "2": "{Advanced Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is one spoon of porridge more than that of Basic Fortitude.\n",
+          "3": "{Expert Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is two spoons of porridge more than that of Basic Fortitude.\n"
+        }
+      }
+    }
+  },
+  "NewSpells": {
+    "ExternalSpells": {
+      "151": {
+        "provider": "HD.Plugin.H3.NewSpellsFortitude",
+        "spellKey": "Fortitude",
+        "kind": "combat",
+        "combatTargetMode": "targeted",
+        "editorVisible": "1",
+        "capabilities": "1134",
+        "animationKey": "HD.Plugin.H3.NewSpellsFortitude.Fortitude.Glow",
+        "animationDef": "SmpTough.def",
+        "animationName": "Glow",
+        "animationType": "1"
+      }
+    }
+  }
+}

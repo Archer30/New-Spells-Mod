@@ -86,6 +86,22 @@ try {
         if ($live[$i] -ne $mapped[$handler + $i]) { throw 'Loaded handler differs from the deployed release.' }
     }
     Write-Output 'Loaded BM:G handler matches the deployed release after PE relocation.'
+    $hook = Read-LiveBytes 0x75F334 5
+    if ($hook[0] -ne 0xE9) { throw 'BM:G LoHook is not installed.' }
+    $table = [BitConverter]::ToUInt32((Read-LiveBytes 0x687FA8 4), 0)
+    foreach ($id in (@(71,73,75) + @(81..95))) {
+        $record = Read-LiveBytes ($table + $id * 0x88) 0x88
+        $name = [BitConverter]::ToUInt32($record, 0x10)
+        $level = [BitConverter]::ToInt32($record, 0x18)
+        if ($name -eq 0 -or (Read-LiveBytes $name 1)[0] -eq 0 -or $level -lt 1 -or $level -gt 5) {
+            throw "Incomplete built-in spell record $id."
+        }
+    }
+    # ERA writes Debug\Era\log.txt when the game closes, not while it runs.
+    [BmgStartupRead]::CloseHandle($handle) | Out-Null
+    $handle = [IntPtr]::Zero
+    $process.CloseMainWindow() | Out-Null
+    if (-not $process.WaitForExit(30000)) { Stop-Process -Id $process.Id; $process.WaitForExit() }
     $startupLog = Get-Content -LiteralPath (Join-Path $GameDirectory 'Debug\Era\log.txt') -Raw
     if ($startupLog -notmatch 'Spell count (\d+)') { throw 'Startup log has no spell count.' }
     $count = [int]$Matches[1]

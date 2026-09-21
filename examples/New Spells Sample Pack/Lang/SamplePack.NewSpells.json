@@ -1,0 +1,74 @@
+{
+  "era": {
+    "spells": {
+      "150": {
+        "type": "1",
+        "soundName": "Sysmsg.wav",
+        "flags": "266325",
+        "name": "Fortitude",
+        "shortName": "Fortitude",
+        "level": "4",
+        "school": "4",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "20",
+          "1": "16",
+          "2": "16",
+          "3": "16"
+        },
+        "baseValue": {
+          "0": "130",
+          "1": "130",
+          "2": "140",
+          "3": "150"
+        },
+        "chanceToGet": {
+          "0": "10",
+          "1": "10",
+          "2": "10",
+          "3": "10",
+          "4": "10",
+          "5": "10",
+          "6": "0",
+          "7": "0",
+          "8": "5"
+        },
+        "aiValue": {
+          "0": "20",
+          "1": "20",
+          "2": "40",
+          "3": "60"
+        },
+        "description": {
+          "0": "{Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "1": "{Basic Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "2": "{Advanced Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is one spoon of porridge more than that of Basic Fortitude.\n",
+          "3": "{Expert Fortitude}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is two spoons of porridge more than that of Basic Fortitude.\n"
+        },
+        "animationIndex": "0"
+      }
+    }
+  },
+  "NewSpells": {
+    "DataSpells": {
+      "150": {
+        "kind": "Enchantment",
+        "spellKey": "Fortitude",
+        "editorVisible": "1",
+        "modHealth": {
+          "0": "130",
+          "1": "130",
+          "2": "140",
+          "3": "150"
+        },
+        "immuneSiegeWeapons": "1",
+        "animationDef": "SmpTough.def",
+        "animationName": "Fortitude",
+        "animationType": "1",
+        "scriptOnCast": "SamplePack_OnCast",
+        "scriptOnApply": "SamplePack_OnApply",
+        "scriptOnRemove": "SamplePack_OnRemove"
+      }
+    }
+  }
+}

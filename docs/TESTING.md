@@ -13,6 +13,24 @@ translation keys must be used in both cases. The core owns
 `Lang/NewSpells.json`; every provider must retain its unique
 `Lang/*NewSpells.json` filename.
 
+## Spell ceiling probe
+
+`tests/ProbeSpellCeiling.ps1` starts a probe build of the core in a disposable
+game copy under `work/` and reads the result from `Debug/Era/log.txt` after it
+closes the game (ERA writes the log at exit). Build the probe with
+`-p:CeilingNativeProbe=true` into `work/ceiling-probe-build` and pass the
+expected spell count and number of data spells:
+
+```powershell
+& tests\ProbeSpellCeiling.ps1 -GameDirectory work\era3924 -ExpectedSpellCount 96
+& tests\ProbeSpellCeiling.ps1 -GameDirectory work\era3924 -ExpectedSpellCount 151 -ExpectedDataSpells 1
+```
+
+The second form expects `examples/New Spells Sample Pack` installed below New
+Spells in `Mods/list.txt`. In `Mods/list.txt` a mod listed lower wins for files
+of the same name, Advanced Classes Mod ships a placeholder `NewSpells.dll`, so
+New Spells must be listed below it.
+
 ## Startup verification
 
 After reaching the adventure map, refresh ERA diagnostics and verify:

@@ -1,0 +1,35 @@
+{
+  "caption": {
+    "en_US": "New Spells Sample Pack",
+    "ru_RU": "Пример пакета New Spells",
+    "zh_CN": "新魔法示例包"
+  },
+  "description": {
+    "full": {
+      "en_US": "README.md"
+    },
+    "short": {
+      "en_US": "Fortitude (150): the built-in Toughness spell rebuilt as a data spell.",
+      "ru_RU": "Стойкость (150): встроенное заклинание Прочность как data spell.",
+      "zh_CN": "坚韧 (150)：用数据魔法重建的内置坚韧。"
+    }
+  },
+  "author": "New Spells",
+  "mod_version": "1.0.0",
+  "priority": 5,
+  "compatibility": {
+    "class": "default",
+    "entries": {},
+    "requires": [
+      "New Spells"
+    ],
+    "incompatible": [],
+    "load_after": [
+      "New Spells"
+    ]
+  },
+  "platform": "era",
+  "info_version": "2.0",
+  "plugins": {},
+  "category": "gameplay"
+}
