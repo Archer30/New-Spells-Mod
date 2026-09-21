@@ -12,7 +12,7 @@ ABI edit.
 
 ## Binary contract
 
-- Build a PE32/Win32 DLL. The supplied projects use `v141_xp`, `/MT`, four-byte
+- Build a PE32/Win32 DLL. The supplied projects use `v143`, `/MT`, four-byte
   member alignment, and Windows subsystem/minimum OS 5.01.
 - All public structures use fixed-width integer types, a four-byte packing
   boundary, a leading `size`, and `abiVersion == 1`.

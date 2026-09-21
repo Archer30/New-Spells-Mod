@@ -80,7 +80,7 @@ Donor sound, town probabilities and AI table defaults are retained.
 
 ## Validation and reproduction
 
-Build `Release|Win32` in VS 2022 with `v141_xp` and `/MT`. Shared
+Build `Release|Win32` in VS 2022 with `v143` and `/MT`. Shared
 `Directory.Build.targets` builds the host MapToDbgmap converter and emits a
 matching `DebugMaps/<plugin>.dbgmap`; linker `.map` files remain build-only.
 The converter source comes from `D:\Repos\h3era_plugins\tools\MapToDbgmap`.

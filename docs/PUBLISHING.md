@@ -11,8 +11,7 @@ It excludes local game copies, backups, investigation output, compiled DLLs,
 debug maps, and historical release archives. Historical local files have been
 moved outside the repository; see `REPOSITORY_LAYOUT.md`.
 
-Build the core from a VS 2022 installation with v141_xp and SDK 7.1A, plus
-v143 and SDK 10 for the host-side debug-map converter:
+Build the core from a VS 2022 installation with v143 and SDK 10:
 
 ```powershell
 python tools/build_release.py NewSpells/NewSpells.vcxproj build/core
