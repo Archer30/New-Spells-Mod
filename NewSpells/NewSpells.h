@@ -110,6 +110,8 @@ struct _BookSpell_
    int school_level;
 };
 
+unsigned char& nsDisabledFlag(void* game, int spell);
+
 struct Game : public _GameMgr_
 {
    inline int getCurrentDay()
@@ -118,11 +120,11 @@ struct Game : public _GameMgr_
    }
    inline bool SpellDisabled(enum SpellID spell)
    {
-	  return PField<bool>(4)[spell];
+	  return nsDisabledFlag(this, spell) != 0;
    }
    inline void DisableSpell(enum SpellID spell, bool Disabled = true)
    {
-	  PField<bool>(4)[spell] = Disabled;
+	  nsDisabledFlag(this, spell) = Disabled;
    }
    inline void SetVisibility(const int startX, const int startY, const int z, const int whichPlayer, int range, bool remote_move)
    {

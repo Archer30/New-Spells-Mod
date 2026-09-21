@@ -27,6 +27,10 @@ int activeAnimationCount = ANIMS_NUM;
 NewSpellsMap::State mapDisabledSpells = {};
 bool hasValidArmyCoordinates(const army* Army);
 bool isRealArmy(const army* Army);
+inline int& nsDuration(army* Army, int spell);
+void nsCancelDurationsEx(army* Army, bool onlyNegative);
+void nsNewRoundDurationsEx(army* Army);
+bool nsHasActiveDurationEx(army* Army, bool helpfulOnly);
 army* findBattleStackAtHex(const int hex);
 extern int activeSpellMastery[2][21][SPELLS_MAX];
 int __stdcall creatureCast(LoHook* h, HookContext* c);
@@ -376,7 +380,7 @@ void failExternalSpellClosed(ExternalSpellSlot& slot)
          army* const Army = reinterpret_cast<army*>(
             &pCombatManager->stack[side][index]);
          if (!hasValidArmyCoordinates(Army) ||
-             !Army->spellInfluence[spellId])
+             !nsDuration(Army, spellId))
             continue;
          // Use the engine remover after faulting/deactivating the slot.  A
          // direct zero would leave the spell ID in SpellInfluenceQueue and
@@ -892,6 +896,8 @@ void playSound(const char* fileName)
 int forceCappedDuration[SPELLS_MAX];
 
 #include "NsHeroSpells.h"
+#include "NsDisabledSpells.h"
+#include "NsDurations.h"
 #include "NsSpellBounds.h"
 
 // Game Bug Fixes Extended owns the six-byte instruction at 0x56B344 in ERA
@@ -1795,6 +1801,20 @@ int __stdcall ermSpellDisabled(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
+   if (spellId >= NS_DISABLED_SLOTS)
+   {
+      int value = nsDisabledEx[spellId - NS_DISABLED_SLOTS];
+      void* const message = *reinterpret_cast<void**>(c->ebp + 0x14);
+      if (CALL_4(int, __cdecl, 0x74195D, &value, 4, message, 2))
+      {
+         c->return_address = 0x733F2B;
+         return NO_EXEC_DEFAULT;
+      }
+      nsDisabledEx[spellId - NS_DISABLED_SLOTS] = (unsigned char)value;
+      c->return_address = 0x733F2F;
+      return NO_EXEC_DEFAULT;
+   }
+
    // Stock SpellDisBase returns Game+0x4A. Translating every ID by -70 makes
    // the untouched receiver operate on New Spells' unified Game+4 array.
    spellId -= ORIG_SPELLS_NUM;
@@ -1840,7 +1860,7 @@ int __stdcall ermBattleSpellInfluence(LoHook* h, HookContext* c)
    {
       if (spellId >= 0 && spellId < SPELL_FEAR)
       {
-         int& duration = Army->spellInfluence[spellId];
+         int& duration = nsDuration(Army, spellId);
          int& mastery = *static_cast<int*>(resolveLegacyErmBattleField(
             Army, spellId, NewSpellsErm::MasteryOffset));
          const int oldDuration = duration;
@@ -1892,7 +1912,7 @@ int __stdcall ermBattleSpellInfluence(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
-   int& duration = Army->spellInfluence[spellId];
+   int& duration = nsDuration(Army, spellId);
    int& mastery = activeSpellMastery[Army->group][Army->index][spellId];
    const int oldDuration = duration;
    const int oldMastery = mastery;
@@ -3107,8 +3127,11 @@ int __stdcall expandMustAppearSpells(LoHook* h, HookContext* c)
 
 int __stdcall initSpells(LoHook* h, HookContext* c)
 {
-   pGame->SetSpellsAvailability();  
-   memcpy(shrineSpells, pGame->PField<unsigned char>(4), sizeof(shrineSpells));
+   memcpy(pGame->PField<unsigned char>(4), pGame->PField<unsigned char>(0x4A), ORIG_SPELLS_NUM);
+   memset(nsDisabledEx, 0, sizeof(nsDisabledEx));
+   pGame->SetSpellsAvailability();
+   for (int spell = 0; spell < SPELLS_MAX; ++spell)
+      shrineSpells[spell] = pGame->SpellDisabled(static_cast<SpellID>(spell));
 
    c->return_address = 0x4C2641;
    return NO_EXEC_DEFAULT;
@@ -3406,7 +3429,12 @@ float __stdcall SpellCastWorkChance(HiHook* h, CombatManager* combatMgr, int spe
    	  if (spellId == SPELL_BLESS || spellId == SPELL_CURSE || spellId == SPELL_BLOODLUST || spellId == SPELL_SLAYER || spellId == SPELL_FORTUNE || spellId == SPELL_MISFORTUNE)
 		 return 0.0f;
 
-   return CALL_7(float, __thiscall, h->GetDefaultFunc(), combatMgr, spellId, casting_side, target_army, redirected, first_target, creature_spell);   
+   float chance = CALL_7(float, __thiscall, h->GetDefaultFunc(), combatMgr, spellId, casting_side, target_army, redirected, first_target, creature_spell);
+   if (chance == 0.0f && target_army &&
+       ((spellId == SPELL_DISPEL && target_army->group == casting_side && nsHasActiveDurationEx(target_army, false)) ||
+        (spellId == SPELL_DISPEL_HELPFUL_SPELLS && nsHasActiveDurationEx(target_army, true))))
+      return 1.0f;
+   return chance;
 }
 
 void __stdcall beforeNewDayStart(HiHook* h, Game* game)
@@ -3435,6 +3463,7 @@ void initSpellParams(CombatManager* combatMgr)
       return;
 
    setupSpellMastery();
+   nsClearDurationsEx();
 
    for (int side = ATTACKER; side <= DEFENDER; ++side)
    {
@@ -3660,6 +3689,8 @@ int __stdcall newRoundSpellSettings(LoHook* h, HookContext* c)
    if (!isRealArmy(Army))
       return NO_EXEC_DEFAULT;
 
+   nsNewRoundDurationsEx(Army);
+
    // Explosion
    if (explosionSpeedReduction && explosionSpell[Army->group][Army->index].speedPenalty)
    {
@@ -3711,7 +3742,7 @@ int __stdcall newRoundSpellSettings(LoHook* h, HookContext* c)
       ExternalSpellSlot* const slot = getExternalSpellSlot(spellId);
       if (!slot || !slot->active ||
           !(slot->descriptor.capabilities & NEWSPELLS_CAP_STATUS_ROUND) ||
-          !Army->spellInfluence[spellId])
+          !nsDuration(Army, spellId))
          continue;
       NewSpellsStatusContextV1 context = {};
       context.size = sizeof(context);
@@ -3720,7 +3751,7 @@ int __stdcall newRoundSpellSettings(LoHook* h, HookContext* c)
       context.stack = Army;
       context.spellId = spellId;
       context.mastery = activeSpellMastery[Army->group][Army->index][spellId];
-      context.duration = Army->spellInfluence[spellId];
+      context.duration = nsDuration(Army, spellId);
       context.event = NEWSPELLS_STATUS_ROUND;
       const int32_t result = invokeStatusCallback(*slot,
          slot->descriptor.OnStatusRound, context);
@@ -3730,7 +3761,7 @@ int __stdcall newRoundSpellSettings(LoHook* h, HookContext* c)
       {
          // Use the engine removal path so a provider that owns auxiliary
          // status state receives its matching OnStatusRemove notification.
-         if (Army->spellInfluence[spellId])
+         if (nsDuration(Army, spellId))
             Army->CancelIndividualSpell(spellId);
       }
    }
@@ -3746,6 +3777,9 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
    int schoolLevel = c->eax;
    int spellSpecialtyEffect = 0;
 
+   if (spell == SPELL_ANTI_MAGIC)
+      nsCancelDurationsEx(Army, true);
+
    if (!hasValidArmyCoordinates(Army) || spell < 0 || spell >= SPELLS_NUM ||
        schoolLevel < eMasteryNone || schoolLevel > eMasteryExpert)
    {
@@ -3759,7 +3793,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
       if (!external->active ||
           !(external->descriptor.capabilities & NEWSPELLS_CAP_STATUS_APPLY))
       {
-         Army->spellInfluence[spell] = 0;
+         nsDuration(Army, spell) = 0;
          activeSpellMastery[Army->group][Army->index][spell] =
             eMasteryNone;
          if (Army->numSpellInfluences > 0)
@@ -3779,7 +3813,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
       context.casterHero = Hero;
       context.spellId = spell;
       context.mastery = schoolLevel;
-      context.duration = Army->spellInfluence[spell];
+      context.duration = nsDuration(Army, spell);
       context.event = NEWSPELLS_STATUS_APPLY;
       const int32_t result = invokeStatusCallback(*external,
          external->descriptor.OnStatusApply, context);
@@ -3788,7 +3822,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
          // This is still before the queue insertion at 0x444D5C. Remove the
          // provisional influence locally first so failExternalSpellClosed()
          // never asks the engine to remove a not-yet-queued effect.
-         Army->spellInfluence[spell] = 0;
+         nsDuration(Army, spell) = 0;
          activeSpellMastery[Army->group][Army->index][spell] =
             eMasteryNone;
          if (Army->numSpellInfluences > 0)
@@ -3799,7 +3833,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
       }
       else if (result != NEWSPELLS_PROVIDER_COMMITTED)
       {
-         Army->spellInfluence[spell] = 0;
+         nsDuration(Army, spell) = 0;
          activeSpellMastery[Army->group][Army->index][spell] =
             eMasteryNone;
          if (Army->numSpellInfluences > 0)
@@ -3808,8 +3842,8 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
          return NO_EXEC_DEFAULT;
       }
       if (forceCappedDuration[spell])
-         Army->spellInfluence[spell] = min(forceCappedDuration[spell],
-            Army->spellInfluence[spell]);
+         nsDuration(Army, spell) = min(forceCappedDuration[spell],
+            nsDuration(Army, spell));
       c->return_address = 0x444D5C;
       return NO_EXEC_DEFAULT;
    }
@@ -4061,7 +4095,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
 
    // Force Capped Duration
    if (forceCappedDuration[spell])
-	  Army->spellInfluence[spell] = min(forceCappedDuration[spell], Army->spellInfluence[spell]);
+	  nsDuration(Army, spell) = min(forceCappedDuration[spell], nsDuration(Army, spell));
    
    c->return_address = 0x444D5C;
    return NO_EXEC_DEFAULT;
@@ -4072,7 +4106,7 @@ bool shouldExecuteExternalDispel(army* const Army, const int spellId)
    ExternalSpellSlot* const external = getExternalSpellSlot(spellId);
    if (!external || !external->active ||
        !(external->descriptor.capabilities & NEWSPELLS_CAP_CURE_DISPEL) ||
-       !hasValidArmyCoordinates(Army) || Army->spellInfluence[spellId] <= 0)
+       !hasValidArmyCoordinates(Army) || nsDuration(Army, spellId) <= 0)
       return true;
 
    NewSpellsStatusContextV1 context = {};
@@ -4082,7 +4116,7 @@ bool shouldExecuteExternalDispel(army* const Army, const int spellId)
    context.stack = Army;
    context.spellId = spellId;
    context.mastery = activeSpellMastery[Army->group][Army->index][spellId];
-   context.duration = Army->spellInfluence[spellId];
+   context.duration = nsDuration(Army, spellId);
    context.event = NEWSPELLS_STATUS_DISPEL;
 
    const int32_t result = invokeStatusCallback(*external,
@@ -4483,7 +4517,7 @@ int __stdcall cureNewSpells(LoHook* h, HookContext* c)
          ExternalSpellSlot* const slot = getExternalSpellSlot(spellId);
          if (!slot || !slot->active ||
              !(slot->descriptor.capabilities & NEWSPELLS_CAP_CURE_DISPEL) ||
-             !Army->spellInfluence[spellId])
+             !nsDuration(Army, spellId))
             continue;
          NewSpellsStatusContextV1 context = {};
          context.size = sizeof(context);
@@ -4492,7 +4526,7 @@ int __stdcall cureNewSpells(LoHook* h, HookContext* c)
          context.stack = Army;
          context.spellId = spellId;
          context.mastery = activeSpellMastery[Army->group][Army->index][spellId];
-         context.duration = Army->spellInfluence[spellId];
+         context.duration = nsDuration(Army, spellId);
          context.event = NEWSPELLS_STATUS_CURE;
          const int32_t result = invokeStatusCallback(*slot,
             slot->descriptor.OnCureOrDispel, context);
@@ -4916,7 +4950,7 @@ int type_AI_spellcaster::get_antimagic_cancel_value(army* currentArmy, TSkillMas
       int (__thiscall type_AI_spellcaster::*valueFunction)(army* const, type_enchant_data) const =
          get_enchantment_function(static_cast<SpellID>(spellId));
 
-      if (!currentArmy->spellInfluence[spellId] || !valueFunction ||
+      if (!nsDuration(currentArmy, spellId) || !valueFunction ||
           dispelLevel < o_Spell[spellId].level)
          continue;
 
@@ -4924,8 +4958,8 @@ int type_AI_spellcaster::get_antimagic_cancel_value(army* currentArmy, TSkillMas
       enchantData.spell = static_cast<SpellID>(spellId);
       enchantData.mastery = static_cast<TSkillMastery>(
          activeSpellMastery[currentArmy->group][currentArmy->index][spellId]);
-      enchantData.power = currentArmy->spellInfluence[spellId];
-      enchantData.duration = currentArmy->spellInfluence[spellId];
+      enchantData.power = nsDuration(currentArmy, spellId);
+      enchantData.duration = nsDuration(currentArmy, spellId);
       enchantData.check_resistance = false;
 
       currentArmy->CancelIndividualSpell(spellId);
@@ -6725,12 +6759,12 @@ int __stdcall setSpellInfluence(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
-   if (Army->spellInfluence[spell])
+   if (nsDuration(Army, spell))
    {
-	  const int oldDuration = Army->spellInfluence[spell];
+	  const int oldDuration = nsDuration(Army, spell);
 	  const int oldMastery = activeSpellMastery[Army->group][Army->index][spell];
-	  if (spellDuration > Army->spellInfluence[spell])
-		 Army->spellInfluence[spell] = spellDuration;
+	  if (spellDuration > nsDuration(Army, spell))
+		 nsDuration(Army, spell) = spellDuration;
 	  if (spellMastery > activeSpellMastery[Army->group][Army->index][spell])
 		 activeSpellMastery[Army->group][Army->index][spell] = spellMastery;
 
@@ -6744,7 +6778,7 @@ int __stdcall setSpellInfluence(LoHook* h, HookContext* c)
          context.casterHero = *reinterpret_cast<hero**>(c->ebp + 0x14);
          context.spellId = spell;
          context.mastery = activeSpellMastery[Army->group][Army->index][spell];
-         context.duration = Army->spellInfluence[spell];
+         context.duration = nsDuration(Army, spell);
          context.event = NEWSPELLS_STATUS_APPLY;
          const int32_t result = invokeStatusCallback(*external,
             external->descriptor.OnStatusApply, context);
@@ -6752,7 +6786,7 @@ int __stdcall setSpellInfluence(LoHook* h, HookContext* c)
             failExternalSpellClosed(*external);
          else if (result != NEWSPELLS_PROVIDER_COMMITTED)
          {
-            Army->spellInfluence[spell] = oldDuration;
+            nsDuration(Army, spell) = oldDuration;
             activeSpellMastery[Army->group][Army->index][spell] = oldMastery;
          }
       }
@@ -6761,7 +6795,7 @@ int __stdcall setSpellInfluence(LoHook* h, HookContext* c)
    else
    {
 	  ++Army->numSpellInfluences;
-	  Army->spellInfluence[spell] = spellDuration;
+	  nsDuration(Army, spell) = spellDuration;
 	  activeSpellMastery[Army->group][Army->index][spell] = spellMastery;
 	  c->Push(c->edi);
 	  c->edi = o_Spell[spell].effect[spellMastery];
@@ -6834,6 +6868,8 @@ void __stdcall AIShowInfo(HiHook* h, type_AI_spellcaster *spellcaster, CombatMan
    writeInfo("Most powerful", side, &spellcaster->worst_enemies[0]);
 }
 #endif
+
+#include "NsDurationHooks.h"
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
@@ -6908,6 +6944,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteLoHook     (0x4EE1C1, afterInit);
                
          writeHeroSpellHooks();
+         writeDisabledSpellHooks();
+         writeDurationHooks();
+         writeDurationLoopHooks();
          // ===============================================================
          // ------------------------- Battle AI ---------------------------
          // ---------------------------------------------------------------
@@ -7038,7 +7077,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		 // Anti-Magic AI walks the spell table up to this byte limit.
 		 const unsigned int originalAntiMagicTableBytes = 0x2B08;
 		 if (*reinterpret_cast<const unsigned int*>(0x4447FE) == originalAntiMagicTableBytes)
-			_PI->WriteDword(0x4447FE, SPELLS_NUM * sizeof(_Spell_));
+			_PI->WriteDword(0x4447FE, nsDurationLoopCount() * sizeof(_Spell_));
 
 		 // ===============================================================
          // -------------------------- Mage Guild -------------------------
@@ -7069,11 +7108,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // ===============================================================
          // ------------- New Game.disabled_spells[140] field -------------
          // ---------------------------------------------------------------
-         _PI->WriteByte       (0x4C16ED, 4); // Pyramids
          _PI->WriteByte       (0x4C254C, 4); // Titan's Lightning Bolt
          _PI->WriteByte       (0x4C25F1, 4); // Titan's Lightning Bolt
-         _PI->WriteByte       (0x501297, 4); // Scholars
-         _PI->WriteByte       (0x5BEA55, 4); // Mage Guild
          // ===============================================================
                          
 
@@ -7122,7 +7158,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          // ---------------------------------------------------------------
          _PI->WriteDword      (0x43787A, 162);
          _PI->WriteDword      (0x43D314, 162);
-         _PI->WriteDword      (0x43E3DF, SPELLS_NUM);
+         _PI->WriteDword      (0x43E3DF, nsDurationLoopCount());
          // ===============================================================
         
          // Fear, Poison, Disease, Age, ...
