@@ -31,6 +31,8 @@ inline int& nsDuration(army* Army, int spell);
 void nsCancelDurationsEx(army* Army, bool onlyNegative);
 void nsNewRoundDurationsEx(army* Army);
 bool nsHasActiveDurationEx(army* Army, bool helpfulOnly);
+void nsApplyDataKindTables();
+void nsDataClearMods();
 army* findBattleStackAtHex(const int hex);
 extern int activeSpellMastery[2][21][SPELLS_MAX];
 int __stdcall creatureCast(LoHook* h, HookContext* c);
@@ -899,6 +901,7 @@ int forceCappedDuration[SPELLS_MAX];
 #include "NsDisabledSpells.h"
 #include "NsDurations.h"
 #include "NsSpellBounds.h"
+#include "NsVirtualLod.h"
 
 // Game Bug Fixes Extended owns the six-byte instruction at 0x56B344 in ERA
 // to prevent AI Town Portal on cursed ground. The old NewSpells code rewrote
@@ -958,6 +961,10 @@ char* getJsonString(const std::string& key, char* defaultValue)
    return tryGetJsonValue(key, value) ? value : defaultValue;
 }
 
+#include "NsDataSpells.h"
+#include "NsEvents.h"
+#include "NsOptions.h"
+
 std::string makeSpellJsonKey(const int spellId, const char* field,
                              const int index = ID_NONE)
 {
@@ -978,6 +985,8 @@ std::string makePrivateSpellJsonKey(const int spellId, const char* field)
 
 std::string makeExternalSpellJsonKey(const int spellId, const char* field)
 {
+   if (nsDataSpell(spellId))
+      return nsDataKey(spellId, field);
    char key[128];
    sprintf_s(key, sizeof(key), "NewSpells.ExternalSpells.%d.%s", spellId,
       field);
@@ -1150,7 +1159,13 @@ bool getExternalSpellDeclaration(const int spellId, char*& providerKey,
    providerKey = spellKey = kind = 0;
    capabilities = 0;
    int editorVisible = 0;
-   if (!tryGetJsonValue(makeExternalSpellJsonKey(spellId, "provider"),
+   if (nsDataSpellDeclaration(spellId, providerKey, spellKey, kind, capabilities))
+   {
+      editorVisible = nsDataInt(spellId, "editorVisible", 1);
+      if (editorVisible != 0 && editorVisible != 1)
+         return false;
+   }
+   else if (!tryGetJsonValue(makeExternalSpellJsonKey(spellId, "provider"),
                         providerKey) ||
        !tryGetJsonValue(makeExternalSpellJsonKey(spellId, "spellKey"),
                         spellKey) ||
@@ -2754,6 +2769,7 @@ int __stdcall afterInit(LoHook* h, HookContext* c)
    }
 
    sealAndValidateExternalSpellRegistrations();
+   nsApplyDataKindTables();
 
    // Poison
    poisonSpellParams[eMasteryNone].healthModFirstRound = 0.1f;
@@ -3130,6 +3146,7 @@ int __stdcall initSpells(LoHook* h, HookContext* c)
    memcpy(pGame->PField<unsigned char>(4), pGame->PField<unsigned char>(0x4A), ORIG_SPELLS_NUM);
    memset(nsDisabledEx, 0, sizeof(nsDisabledEx));
    pGame->SetSpellsAvailability();
+   nsApplyDisabledSpells();
    for (int spell = 0; spell < SPELLS_MAX; ++spell)
       shrineSpells[spell] = pGame->SpellDisabled(static_cast<SpellID>(spell));
 
@@ -3254,9 +3271,12 @@ int army::get_adjusted_defense(army* const enemy, bool frenzy_included)
    return max(effDefense, 0);
 }
 
-int __fastcall GetEffectiveDefenseAgainst(army* Army, int unused_edx, army* target, bool needFrenzyMod)
+int __stdcall GetEffectiveDefenseAgainst(HiHook* h, army* Army, army* target, bool needFrenzyMod)
 {
-   return Army->get_adjusted_defense(target, needFrenzyMod);   
+   if (Army && target && target->spellInfluence[SPELL_BEHEMOTHS_CLAWS] && !target->can_shoot() &&
+       hasValidArmyCoordinates(target))
+      return Army->get_adjusted_defense(target, needFrenzyMod);
+   return CALL_3(int, __thiscall, h->GetDefaultFunc(), Army, target, needFrenzyMod);   
 }
 
 // Hour of Power. Bless
@@ -3388,6 +3408,13 @@ float __stdcall SpellCastWorkChance(HiHook* h, CombatManager* combatMgr, int spe
            Hero->playerOwner != o_ActivePlayer->id))
          return 0.0f;
 
+      if (NsDataSpell* const data = nsDataSpell(spellId))
+      {
+         if (target_army && nsDataImmune(*data, target_army))
+            return 0.0f;
+         return CALL_7(float, __thiscall, h->GetDefaultFunc(), combatMgr, spellId, casting_side, target_army, redirected, first_target, creature_spell);
+      }
+
       if (external->descriptor.capabilities & NEWSPELLS_CAP_COMBAT_TARGET)
       {
          if (findPendingExternalCombatTransaction(spellId, casting_side,
@@ -3464,6 +3491,7 @@ void initSpellParams(CombatManager* combatMgr)
 
    setupSpellMastery();
    nsClearDurationsEx();
+   nsDataClearMods();
 
    for (int side = ATTACKER; side <= DEFENDER; ++side)
    {
@@ -3723,6 +3751,7 @@ int __stdcall newRoundSpellSettings(LoHook* h, HookContext* c)
 
 	  if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 		 fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+		 fullHealth *= nsDataHealthMul(Army);
 
       int health = normalizedStackHealth(fullHealth);
 
@@ -3786,6 +3815,9 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
       c->return_address = 0x444D5C;
       return NO_EXEC_DEFAULT;
    }
+
+   if (spell >= ORIG_SPELLS_NUM && isRealArmy(Army))
+      nsFireStackSpell(Army, spell, schoolLevel, true, Hero);
 
    ExternalSpellSlot* const external = getExternalSpellSlot(spell);
    if (external)
@@ -3894,6 +3926,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 
          int health = normalizedStackHealth(fullHealth);
 
@@ -3996,6 +4029,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 		 
 		 int health = normalizedStackHealth(fullHealth);
 
@@ -4026,6 +4060,7 @@ int __stdcall applySpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 
          int health = normalizedStackHealth(fullHealth);
 
@@ -4152,6 +4187,9 @@ int __stdcall resetSpell(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
+   if (spell >= ORIG_SPELLS_NUM && isRealArmy(Army))
+      nsFireStackSpell(Army, spell, activeSpellMastery[Army->group][Army->index][spell], false, 0);
+
    ExternalSpellSlot* const external = getExternalSpellSlot(spell);
    if (external)
    {
@@ -4219,6 +4257,7 @@ int __stdcall resetSpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 
          int health = normalizedStackHealth(fullHealth);
 
@@ -4287,6 +4326,7 @@ int __stdcall resetSpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 
          int health = normalizedStackHealth(fullHealth);
 
@@ -4317,6 +4357,7 @@ int __stdcall resetSpell(LoHook* h, HookContext* c)
 
 		 if (Army->spellInfluence[SPELL_HOUR_OF_POWER])
 			fullHealth *= hourOfPowerSpell[Army->group][Army->index].healthMod / 100.0;
+			fullHealth *= nsDataHealthMul(Army);
 
          int health = normalizedStackHealth(fullHealth);
 
@@ -4689,7 +4730,7 @@ int __fastcall get_elemental_type(enum SpellID spell)
       unitType = eCreatureFirebird;
       break;
    default:
-      unitType = ID_NONE;
+      unitType = nsDataSummonCreature(spell);
    }
 
    return unitType;
@@ -4745,6 +4786,9 @@ bool CombatManager::AbleToSummonElemental(SpellID spell, long side)
    int unitType = PField<int>(0x132A8)[side];
    if (unitType == ID_NONE)
       return true;
+
+   if (NsDataSpell* const data = nsDataSpell(spell))
+      return data->kind == NS_KIND_SUMMON && (!data->summonExclusive || unitType == data->summonCreature);
 
    bool result;
 
@@ -4818,6 +4862,13 @@ int __stdcall SummonCreatures(LoHook* h, HookContext* c)
 int __stdcall skipNonElementals(LoHook* h, HookContext* c)
 {
    int unitType = *(int*)(c->ebp + 0xC);
+
+   NsDataSpell* const data = nsDataSpell(*(int*)(c->ebp + 8));
+   if (data && data->kind == NS_KIND_SUMMON && !data->summonExclusive)
+   {
+      c->return_address = 0x5A74DD;
+      return NO_EXEC_DEFAULT;
+   }
    
    switch (unitType)
    {
@@ -5592,7 +5643,8 @@ int __stdcall consider_spell(LoHook* h, HookContext* c)
    type_spell_choice* spellChoice = (type_spell_choice*)c->ebx;
 
    ExternalSpellSlot* const external = getExternalSpellSlot(spell);
-   if (external)
+   NsDataSpell* const data = external && external->active ? nsDataSpell(spell) : 0;
+   if (external && !(data && (data->kind == NS_KIND_DAMAGE || data->kind == NS_KIND_AREA_DAMAGE)))
    {
       if (!external->active ||
           (external->descriptor.flags & NEWSPELLS_PROVIDER_HUMAN_ONLY) ||
@@ -5768,6 +5820,8 @@ int __stdcall setCursorForFearSpell(HiHook* h, CombatManager* combatMgr, int hex
 // ===============================================================
 
 // Death Cloud, Explosion, Incineration, Golden Touch
+#include "NsDataProvider.h"
+
 int __stdcall castBattleSpell(LoHook* h, HookContext* c)
 {
    int targetCell = *(int*)(c->ebp + 0xC);
@@ -5775,6 +5829,9 @@ int __stdcall castBattleSpell(LoHook* h, HookContext* c)
    TSkillMastery mastery = (TSkillMastery)c->esi;
    int power = *(int*)(c->ebp + 0x1C);
    army* Army = (army*)c->edi;
+
+   if (iSpellType >= ORIG_SPELLS_NUM && pCombatManager)
+      nsFireBattleCast(iSpellType, pCombatManager->current_side, targetCell, mastery, power, *(int*)(c->ebp + 0x10) != 0);
 
    ExternalSpellSlot* const external = getExternalSpellSlot(iSpellType);
    if (external)
@@ -5803,6 +5860,18 @@ int __stdcall castBattleSpell(LoHook* h, HookContext* c)
             cancelExternalCombatTransaction(c, pending);
             return NO_EXEC_DEFAULT;
          }
+      }
+
+      // Both kinds cast through the engine's own switch cases, which end in the epilogue.
+      NsDataSpell* const data = nsDataSpell(iSpellType);
+      if (data && (data->kind == NS_KIND_DAMAGE || data->kind == NS_KIND_ENCHANTMENT))
+      {
+         if (pending)
+            pending->valid = false;
+         if (data->kind == NS_KIND_ENCHANTMENT)
+            return EXEC_DEFAULT;
+         c->return_address = 0x5A0E2A;
+         return NO_EXEC_DEFAULT;
       }
 
       NewSpellsCombatContextV1 context = {};
@@ -6484,6 +6553,9 @@ int __stdcall castAdventureSpell(LoHook* h, HookContext* c)
       return NO_EXEC_DEFAULT;
    }
 
+   if (spell >= ORIG_SPELLS_NUM)
+      nsFireAdventureCast(Hero, spell, schoolLevel);
+
    if (externalAdventure)
    {
       NewSpellsAdventureContextV1 context = {};
@@ -6676,9 +6748,20 @@ void addArtifactSpells(hero* const Hero, const int artifactId)
          heroAvailableSpell(Hero, spellId) = 1;
 }
 
+// Emerald replaces the combo table with 124-byte records (index + 30 words), the layout is
+// recognized by the index fields of records 1 and 2.
+struct _ComboArtInfoWide_ { int index; unsigned int parts[30]; };
+bool hasComboPart(int comboArtIndex, int artifact)
+{
+   const int* table = (const int*)o_ComboArtInfo;
+   if (table[6] != 1 && table[31] == 1 && table[62] == 2)
+      return ((*(_ComboArtInfoWide_**)0x660B6C)[comboArtIndex].parts[artifact >> 5] >> (artifact & 31) & 1) != 0;
+   return o_ComboArtInfo[comboArtIndex].HasPart(artifact);
+}
+
 void hero::UpdateSpellsFromArtifacts()
 {
-   for (int iSpell = 0; iSpell < SPELLS_MAX; ++iSpell)
+   for (int iSpell = ORIG_SPELLS_NUM; iSpell < SPELLS_MAX; ++iSpell)
 	  heroAvailableSpell(this, iSpell) = heroInSpellbook(this, iSpell);
 
    for (int iSlot = 0; iSlot < 19; ++iSlot)
@@ -6703,7 +6786,7 @@ void hero::UpdateSpellsFromArtifacts()
             {
                for (int iArt = 0; iArt < ARTIFACTS_NUM; ++iArt)
                {
-                  if (o_ComboArtInfo[comboArtIndex].HasPart(iArt) && o_ArtInfo[iArt].new_spell)
+                  if (hasComboPart(comboArtIndex, iArt) && o_ArtInfo[iArt].new_spell)
                      addArtifactSpells(this, iArt);
                }
             }
@@ -6712,10 +6795,21 @@ void hero::UpdateSpellsFromArtifacts()
    }
 }
 
-void __fastcall UpdateSpellsFromArtifacts(hero* Hero)
+// The exe body serves ids below 70, with the hooks other plugins keep inside it.
+void __stdcall UpdateSpellsFromArtifacts(HiHook* h, hero* Hero)
 {
+   CALL_1(void, __thiscall, h->GetDefaultFunc(), Hero);
    if (hasValidHeroId(Hero))
       Hero->UpdateSpellsFromArtifacts();
+}
+
+// Spell scroll in the exe body: "mov [ebx+eax+430h], dl"
+int __stdcall artifactScrollSpell(LoHook* h, HookContext* c)
+{
+   if ((unsigned int)c->eax < SPELLS_MAX)
+      heroAvailableSpell((hero*)c->ebx, c->eax) = 1;
+   c->return_address = 0x4D9894;
+   return NO_EXEC_DEFAULT;
 }
 
 int army::GetSpeed()
@@ -6725,12 +6819,27 @@ int army::GetSpeed()
    if (this->spellInfluence[SPELL_SLOW] || this->spellInfluence[SPELL_DISEASE] || this->spellInfluence[SPELL_FEAR])
 	  speed = this->sMonInfo.attributes & CF_SIEGE_WEAPON ? 0 : max((int)(speed * this->slowPenalty), 1);
 
+   const int percent = nsDataSpeedPercent(this);
+   if (percent != 100 && !(this->sMonInfo.attributes & CF_SIEGE_WEAPON))
+      speed = max(speed * percent / 100, 1);
+
    return speed;
 }
 
-int __fastcall GetSpeed(army* Army)
+int __stdcall GetSpeed(HiHook* h, army* Army)
 {
-   return Army ? Army->GetSpeed() : 0;   
+   int speed = CALL_1(int, __thiscall, h->GetDefaultFunc(), Army);
+   if (!Army)
+      return speed;
+
+   if (!Army->spellInfluence[SPELL_SLOW] && (Army->spellInfluence[SPELL_DISEASE] || Army->spellInfluence[SPELL_FEAR]))
+      speed = Army->sMonInfo.attributes & CF_SIEGE_WEAPON ? 0 : max((int)(speed * Army->slowPenalty), 1);
+
+   const int percent = nsDataSpeedPercent(Army);
+   if (percent != 100 && !(Army->sMonInfo.attributes & CF_SIEGE_WEAPON))
+      speed = max(speed * percent / 100, 1);
+
+   return speed;
 }
 
 int __stdcall setSpellInfluence(LoHook* h, HookContext* c)
@@ -6895,6 +7004,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          return TRUE;
 #endif
 
+         nsLoadDataSpells();
+         nsReadOptions();
          activeSpellCount = getConfiguredSpellCount();
          initializeIndirectTableTails();
 
@@ -6947,6 +7058,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          writeDisabledSpellHooks();
          writeDurationHooks();
          writeDurationLoopHooks();
+         nsWriteVirtualLodHooks();
+         nsScanLooseFiles();
          // ===============================================================
          // ------------------------- Battle AI ---------------------------
          // ---------------------------------------------------------------
@@ -7291,7 +7404,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          _PI->WriteLoHook     (0x44A268, getStackMagicVulnerability);
          
          // Artifacts (incl. Spell Scrolls)
-         _PI->WriteHiHook     (0x4D9840, SPLICE_, DIRECT_, THISCALL_, UpdateSpellsFromArtifacts);
+         _PI->WriteHiHook     (0x4D9840, SPLICE_, EXTENDED_, THISCALL_, UpdateSpellsFromArtifacts);
+         _PI->WriteLoHook     (0x4D988D, artifactScrollSpell);
 
          _PI->WriteHiHook     (0x4425A0, SPLICE_, DIRECT_, THISCALL_, can_attack);
 		 _PI->WriteHiHook     (0x4C7CA0, SPLICE_, EXTENDED_, THISCALL_, beforeNewDayStart);
@@ -7306,7 +7420,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          installFearMeleeGuardHook();
          _PI->WriteLoHook     (0x41F25C, skipShootingUnderFear);
          // Getting defense modifier (common for Blind, Paralyze, Fear)
-         _PI->WriteHiHook     (0x4422B0, SPLICE_, DIRECT_, THISCALL_, GetEffectiveDefenseAgainst);
+         _PI->WriteHiHook     (0x4422B0, SPLICE_, EXTENDED_, THISCALL_, GetEffectiveDefenseAgainst);
 		 _PI->WriteHiHook     (0x4438B0, SPLICE_, EXTENDED_, THISCALL_, ComputeAttackerDamageReduction);
          // ===============================================================
 
@@ -7345,7 +7459,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			SpellCastWorkChance) != 0;
 		 
 		 // Speed
-		 _PI->WriteHiHook     (0x4489F0, SPLICE_, DIRECT_, THISCALL_, GetSpeed);
+		 _PI->WriteHiHook     (0x4489F0, SPLICE_, EXTENDED_, THISCALL_, GetSpeed);
 		 		 
 		 int speedModJmpAddr[] = {0x441CE3, 0x441E06, 0x44857E, 0x4485BC, 0x4485FC, 0x44867A};
 		 for (std::size_t i = 0; i < sizeof(speedModJmpAddr) / sizeof(int); ++i)
@@ -7402,6 +7516,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
          newSpellsProviderRegistryV1.capabilities = providerRuntimeCapabilities;
          publishAiSpellQueryInterop();
          publishSpellProviderRegistry();
+         nsRegisterDataProvider();
+         nsInstallOptions();
       }
    }
 

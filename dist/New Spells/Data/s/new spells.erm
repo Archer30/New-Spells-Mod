@@ -29,3 +29,16 @@ ZVSE2
     !!en;
   !!en;
 !!en;
+
+; Events of spell ids 70 and up. A pack adds its own triggers with the same names.
+; x1 spell, x2 side, x3 target hex, x4 mastery, x5 power, x6 creature cast flag
+!?FU(NewSpells_OnBattleCast);
+!#VA(spell:x) (side:x) (hex:x) (mastery:x) (power:x) (creature:x);
+
+; x1 spell, x2 side, x3 stack index, x4 mastery, x5 applied flag, x6 hero id
+!?FU(NewSpells_OnStackSpell);
+!#VA(spell:x) (side:x) (stack:x) (mastery:x) (applied:x) (hero:x);
+
+; x1 spell, x2 hero id, x3 mastery
+!?FU(NewSpells_OnAdventureCast);
+!#VA(spell:x) (hero:x) (mastery:x);

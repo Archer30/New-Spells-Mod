@@ -1241,6 +1241,37 @@ ExternalDeclarationStatus ValidateExternalDeclaration(
       EXTERNAL_DECLARATION_HIDDEN;
 }
 
+// A data spell needs a known kind, editorVisible defaults to visible.
+ExternalDeclarationStatus ValidateDataSpellRecord(
+   const std::string& json, const std::size_t recordBegin,
+   const std::size_t recordEnd)
+{
+   std::string kind;
+   if (!FindJsonStringProperty(json, recordBegin, recordEnd, "kind", kind) ||
+       (_stricmp(kind.c_str(), "Damage") != 0 &&
+        _stricmp(kind.c_str(), "AreaDamage") != 0 &&
+        _stricmp(kind.c_str(), "Enchantment") != 0 &&
+        _stricmp(kind.c_str(), "Summon") != 0 &&
+        _stricmp(kind.c_str(), "Custom") != 0))
+      return EXTERNAL_DECLARATION_INVALID;
+
+   std::size_t valueBegin = 0;
+   std::size_t valueEnd = 0;
+   const JsonMemberResult visible = FindJsonMember(json, recordBegin,
+      recordEnd, "editorVisible", valueBegin, valueEnd);
+   if (visible == JSON_MEMBER_ABSENT)
+      return EXTERNAL_DECLARATION_VISIBLE;
+
+   std::uint32_t editorVisible = 0;
+   if (visible != JSON_MEMBER_FOUND ||
+       !FindJsonUnsignedProperty(json, recordBegin, recordEnd,
+                                 "editorVisible", editorVisible) ||
+       editorVisible > 1)
+      return EXTERNAL_DECLARATION_INVALID;
+   return editorVisible == 1 ? EXTERNAL_DECLARATION_VISIBLE :
+      EXTERNAL_DECLARATION_HIDDEN;
+}
+
 void DiscoverExternalSpellsInFile(
    const char* basePath, const char* overlayPath,
    std::vector<ExternalSpellCandidate> (&candidates)
@@ -1256,11 +1287,16 @@ void DiscoverExternalSpellsInFile(
    std::size_t newSpellsEnd = 0;
    std::size_t declarationsBegin = 0;
    std::size_t declarationsEnd = 0;
+   std::size_t dataBegin = 0;
+   std::size_t dataEnd = 0;
    if (!FindJsonObject(baseJson, baseRootBegin, baseRootEnd,
-                       "NewSpells", newSpellsBegin, newSpellsEnd) ||
-       !FindJsonObject(baseJson, newSpellsBegin, newSpellsEnd,
-                       "ExternalSpells", declarationsBegin,
-                       declarationsEnd))
+                       "NewSpells", newSpellsBegin, newSpellsEnd))
+      return;
+   const bool hasDeclarations = FindJsonObject(baseJson, newSpellsBegin,
+      newSpellsEnd, "ExternalSpells", declarationsBegin, declarationsEnd);
+   const bool hasDataSpells = FindJsonObject(baseJson, newSpellsBegin,
+      newSpellsEnd, "DataSpells", dataBegin, dataEnd);
+   if (!hasDeclarations && !hasDataSpells)
       return;
 
    std::string overlayJson;
@@ -1279,11 +1315,21 @@ void DiscoverExternalSpellsInFile(
 
       std::size_t declarationBegin = 0;
       std::size_t declarationEnd = 0;
-      if (FindJsonMember(baseJson, declarationsBegin, declarationsEnd,
-                         spellKey, declarationBegin,
-                         declarationEnd) != JSON_MEMBER_FOUND ||
-          declarationBegin >= declarationEnd ||
-          baseJson[declarationBegin] != '{')
+      const bool declared = hasDeclarations &&
+         FindJsonMember(baseJson, declarationsBegin, declarationsEnd,
+                        spellKey, declarationBegin,
+                        declarationEnd) == JSON_MEMBER_FOUND &&
+         declarationBegin < declarationEnd &&
+         baseJson[declarationBegin] == '{';
+
+      std::size_t dataRecordBegin = 0;
+      std::size_t dataRecordEnd = 0;
+      const bool dataDefined = !declared && hasDataSpells &&
+         FindJsonMember(baseJson, dataBegin, dataEnd, spellKey,
+                        dataRecordBegin, dataRecordEnd) == JSON_MEMBER_FOUND &&
+         dataRecordBegin < dataRecordEnd &&
+         baseJson[dataRecordBegin] == '{';
+      if (!declared && !dataDefined)
          continue;
 
       std::string name;
@@ -1293,9 +1339,11 @@ void DiscoverExternalSpellsInFile(
                                        spellFlags))
          continue;
 
-      const ExternalDeclarationStatus declarationStatus =
-         ValidateExternalDeclaration(baseJson, declarationBegin,
-                                     declarationEnd, spellFlags);
+      const ExternalDeclarationStatus declarationStatus = declared
+         ? ValidateExternalDeclaration(baseJson, declarationBegin,
+                                       declarationEnd, spellFlags)
+         : ValidateDataSpellRecord(baseJson, dataRecordBegin,
+                                   dataRecordEnd);
       if (declarationStatus == EXTERNAL_DECLARATION_INVALID)
          continue;
 

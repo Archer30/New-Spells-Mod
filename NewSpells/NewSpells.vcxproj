@@ -113,10 +113,15 @@
     <ClInclude Include="HoMM3API.h" />
     <ClInclude Include="NewSpells.h" />
     <ClInclude Include="NsHeroSpells.h" />
+    <ClInclude Include="NsDataProvider.h" />
+    <ClInclude Include="NsDataSpells.h" />
     <ClInclude Include="NsDisabledSpells.h" />
+    <ClInclude Include="NsEvents.h" />
+    <ClInclude Include="NsOptions.h" />
     <ClInclude Include="NsDurationHooks.h" />
     <ClInclude Include="NsDurations.h" />
     <ClInclude Include="NsSpellBounds.h" />
+    <ClInclude Include="NsVirtualLod.h" />
     <ClInclude Include="NewSpellsAiInterop.h" />
     <ClInclude Include="NewSpellsProviderApi.h" />
     <ClInclude Include="NewSpellsMapFormat.h" />
