@@ -13,8 +13,10 @@ against the subsequently recovered official SoD source and binary package.
 - `dist/`: package resources, translations, and metadata; generated plugins and
   release archives are excluded from Git.
 
-Local game copies, investigations, downloaded reference packages, backups,
-and build products are intentionally ignored. See [publication notes](docs/PUBLISHING.md)
+Historical game copies, investigations, reference downloads, old builds, and
+release ZIPs were moved outside this repository. Only the current package
+folders remain in `dist/`. See [workspace organization](docs/REPOSITORY_LAYOUT.md).
+New local build products remain ignored. See [publication notes](docs/PUBLISHING.md)
 and [third-party notices](THIRD_PARTY_NOTICES.md) before publishing a release.
 
 ## Build
@@ -128,5 +130,5 @@ with compile-time checks for every critical size and offset. See
   Master of puppets (MIT)
 - ERA integration and maintenance: Archer30
 
-The downloaded comparison archive is intentionally kept under the gitignored
-`reference` directory and is not required to build the plugin.
+Downloaded comparison archives are preserved outside the repository as described
+in `docs/REPOSITORY_LAYOUT.md`; they are not required to build the plugin.

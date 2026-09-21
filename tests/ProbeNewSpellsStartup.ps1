@@ -1,7 +1,8 @@
 param(
     [string] $GameDirectory = 'D:\Games\Heroes 3 ERA',
     [int] $ExpectedSpellCount = 96,
-    [int] $StartupSeconds = 12
+    [int] $StartupSeconds = 12,
+    [string] $ReleaseMapPath = (Join-Path $PSScriptRoot "..\build\core\obj\NewSpells.map")
 )
 $ErrorActionPreference = 'Stop'
 $process = $null
@@ -75,7 +76,7 @@ try {
         }
         $reloc += $size
     }
-    $linkMap = Get-Content (Join-Path $PSScriptRoot '..\work\bmg-release-2.12.3\obj\NewSpells.map') -Raw
+    $linkMap = Get-Content -LiteralPath $ReleaseMapPath -Raw
     if ($linkMap -notmatch '\?ermBattleSpellInfluence\S+\s+([0-9a-fA-F]{8})\s') {
         throw 'Release linker map lacks the handler.'
     }

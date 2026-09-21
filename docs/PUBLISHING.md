@@ -8,7 +8,8 @@ version is 2.12.3; expansion/editor sources retain their existing versions.
 The initial Git commit includes source, build projects, tests, documentation,
 SDK examples, translations, package resources, and source asset provenance.
 It excludes local game copies, backups, investigation output, compiled DLLs,
-debug maps, and historical release archives. Those local files remain on disk.
+debug maps, and historical release archives. Historical local files have been
+moved outside the repository; see `REPOSITORY_LAYOUT.md`.
 
 Build the core from a VS 2022 installation with v141_xp and SDK 7.1A, plus
 v143 and SDK 10 for the host-side debug-map converter:
