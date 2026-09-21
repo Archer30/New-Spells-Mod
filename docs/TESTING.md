@@ -26,6 +26,10 @@ expected spell count and number of data spells:
 & tests\ProbeSpellCeiling.ps1 -GameDirectory work\era3924 -ExpectedSpellCount 151 -ExpectedDataSpells 1
 ```
 
+The core needs ERA 3.9.24 or newer: on ERA 3.9.10 its ERA binding calls exports
+that do not exist there (`CreatePlugin`, `WriteLog`, `trStatic`), the DLL fails to
+load and ERA reports "Failed to load DLL".
+
 The second form expects `examples/New Spells Sample Pack` installed below New
 Spells in `Mods/list.txt`. In `Mods/list.txt` a mod listed lower wins for files
 of the same name, Advanced Classes Mod ships a placeholder `NewSpells.dll`, so

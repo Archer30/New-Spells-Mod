@@ -1,4 +1,5 @@
 #include "era.h"
+#include <cstdlib>
 
 namespace Era
 {
@@ -273,7 +274,8 @@ void InitMemoryManager()
             pluginLibraryName = &pluginLibraryPath[i];
         }
 
-        allocatedMemorySize = RegisterMemoryConsumer(pluginLibraryName);
+        // ERA before 3.9.24 has no memory consumers, the CRT allocator serves then.
+        allocatedMemorySize = RegisterMemoryConsumer ? RegisterMemoryConsumer(pluginLibraryName) : nullptr;
     }
 }
 
@@ -283,26 +285,32 @@ void *operator new(size_t size)
 {
     EraMemory::InitMemoryManager();
 
-    return EraMemory::_ClientMemAlloc(EraMemory::allocatedMemorySize, size);
+    return EraMemory::_ClientMemAlloc ? EraMemory::_ClientMemAlloc(EraMemory::allocatedMemorySize, size) : malloc(size);
 }
 
 void operator delete(void *ptr) noexcept
 {
     EraMemory::InitMemoryManager();
-    EraMemory::_ClientMemFree(EraMemory::allocatedMemorySize, ptr);
+    if (EraMemory::_ClientMemFree)
+        EraMemory::_ClientMemFree(EraMemory::allocatedMemorySize, ptr);
+    else
+        free(ptr);
 }
 
 void *operator new[](size_t size)
 {
     EraMemory::InitMemoryManager();
 
-    return EraMemory::_ClientMemAlloc(EraMemory::allocatedMemorySize, size);
+    return EraMemory::_ClientMemAlloc ? EraMemory::_ClientMemAlloc(EraMemory::allocatedMemorySize, size) : malloc(size);
 }
 
 void operator delete[](void *ptr) noexcept
 {
     EraMemory::InitMemoryManager();
-    EraMemory::_ClientMemFree(EraMemory::allocatedMemorySize, ptr);
+    if (EraMemory::_ClientMemFree)
+        EraMemory::_ClientMemFree(EraMemory::allocatedMemorySize, ptr);
+    else
+        free(ptr);
 }
 #endif
 #endif
