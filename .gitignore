@@ -1,0 +1,52 @@
+# Local build products
+.vs/
+build/
+Debug/
+Release/
+**/*.user
+**/*.tlog/
+**/*.obj
+**/*.pdb
+**/*.ilk
+
+# Downloaded comparison material (not project source)
+reference/
+
+# Local runtime test/install backups
+runtime-backups/
+
+# Investigation workspaces and local history (may contain complete game copies)
+/backups/
+/work/
+/scratch/
+
+# Generated files at any project depth
+**/bin/
+**/obj/
+**/*.iobj
+**/*.ipdb
+**/*.pch
+**/*.idb
+**/*.log
+**/*.lastbuildstate
+**/*.recipe
+**/__pycache__/
+*.pyc
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Compiled plugins and downloadable release bundles
+/dist/*.zip
+/dist/**/EraPlugins/
+/dist/**/EraEditor/
+/dist/**/DebugMaps/
+
+# Local credentials and machine-specific overrides
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+Directory.Build.props.user

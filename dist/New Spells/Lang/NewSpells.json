@@ -1,0 +1,872 @@
+{
+  "era": {
+    "spells": {
+      "71": {
+        "type": "-1",
+        "soundName": "Poison.wav",
+        "animationIndex": "67",
+        "flags": "266261",
+        "name": "Poison",
+        "shortName": "Poison",
+        "level": "4",
+        "school": "8",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "20",
+          "1": "16",
+          "2": "16",
+          "3": "16"
+        },
+        "baseValue": {
+          "0": "5",
+          "1": "5",
+          "2": "4",
+          "3": "3"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "8",
+          "2": "8",
+          "3": "8",
+          "4": "12",
+          "5": "8",
+          "6": "0",
+          "7": "0",
+          "8": "8"
+        },
+        "aiValue": {
+          "0": "20",
+          "1": "20",
+          "2": "40",
+          "3": "60"
+        },
+        "description": {
+          "0": "{Poison}\n\nPoisons an enemy unit, reducing its health at once and then at the beginning of the next two rounds.\n",
+          "1": "{Basic Poison}\n\nPoisons an enemy unit, reducing its health at once and then at the beginning of the next two rounds.\n",
+          "2": "{Advanced Poison}\n\nPoisons an enemy unit, reducing its health at once and then at the beginning of the next two rounds.\n\nEffect is greater than that of Basic Poison.\n",
+          "3": "{Expert Poison}\n\nPoisons an enemy unit, reducing its health at once and then at the beginning of the next two rounds.\n\nEffect is greater than that of Advanced Poison.\n"
+        }
+      },
+      "73": {
+        "type": "-1",
+        "soundName": "Disease.wav",
+        "animationIndex": "69",
+        "flags": "262213",
+        "name": "Disease",
+        "shortName": "Disease",
+        "level": "4",
+        "school": "8",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "16",
+          "1": "12",
+          "2": "12",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "80",
+          "1": "80",
+          "2": "60",
+          "3": "60"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "0",
+          "2": "0",
+          "3": "6",
+          "4": "16",
+          "5": "6",
+          "6": "0",
+          "7": "0",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "20",
+          "1": "20",
+          "2": "40",
+          "3": "60"
+        },
+        "description": {
+          "0": "{Disease}\n\nMakes the enemy unit suffer from dreadful illness, reducing its attack, defense and speed.\n",
+          "1": "{Basic Disease}\n\nMakes the enemy unit suffer from dreadful illness, reducing its attack, defense and speed.\n",
+          "2": "{Advanced Disease}\n\nMakes the enemy unit suffer from dreadful illness, reducing its attack, defense and speed.\n\nEffect is twice that of Basic Disease.\n",
+          "3": "{Expert Disease}\n\nMakes all the enemy units suffer from dreadful illness, reducing their attack, defense and speed.\n\nEffect is twice that of Basic Disease.\n"
+        }
+      },
+      "75": {
+        "type": "-1",
+        "soundName": "Age.wav",
+        "animationIndex": "71",
+        "flags": "266261",
+        "name": "Age",
+        "shortName": "Age",
+        "level": "5",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "25",
+          "1": "20",
+          "2": "20",
+          "3": "20"
+        },
+        "baseValue": {
+          "0": "70",
+          "1": "70",
+          "2": "60",
+          "3": "50"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "0",
+          "2": "4",
+          "3": "8",
+          "4": "16",
+          "5": "8",
+          "6": "0",
+          "7": "0",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "75",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Age}\n\nMagically ages the enemy unit, reducing its health.\n",
+          "1": "{Basic Age}\n\nMagically ages the enemy unit, reducing its health.\n",
+          "2": "{Advanced Age}\n\nMagically ages the enemy unit, reducing its health.\n\nEffect is greater than that of Basic Age.\n",
+          "3": "{Expert Age}\n\nMagically ages the enemy unit, reducing its health.\n\nEffect is greater than that of Advanced Age.\n"
+        }
+      },
+      "81": {
+        "type": "-1",
+        "soundName": "FearRoE.wav",
+        "flags": "263189",
+        "name": "Fear",
+        "shortName": "Fear",
+        "level": "4",
+        "school": "8",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "16",
+          "1": "12",
+          "2": "12",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "75",
+          "1": "75",
+          "2": "50",
+          "3": "25"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "0",
+          "2": "4",
+          "3": "12",
+          "4": "16",
+          "5": "12",
+          "6": "0",
+          "7": "0",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "75",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Fear}\n\nStrikes an enemy unit with such fear that it becomes unable to attack and nearly unable to move.\n",
+          "1": "{Basic Fear}\n\nStrikes an enemy unit with such fear that it becomes unable to attack and nearly unable to move.\n\nSpell Point cost is half that of Normal Fear.\n",
+          "2": "{Advanced Fear}\n\nStrikes an enemy unit with such fear that it becomes unable to attack and nearly unable to move.\n\nPenalty to movement is twice that of Basic Fear.\n",
+          "3": "{Expert Fear}\n\nStrikes an enemy unit with such fear that it becomes unable to attack and nearly unable to move.\n\nPenalty to movement is three times that of Basic Fear.\n"
+        }
+      },
+      "82": {
+        "type": "0",
+        "soundName": "Deathcld.wav",
+        "flags": "33409",
+        "name": "Death Cloud",
+        "shortName": "Death Cloud",
+        "level": "5",
+        "school": "8",
+        "spEffect": "40",
+        "manaCost": {
+          "0": "25",
+          "1": "20",
+          "2": "20",
+          "3": "20"
+        },
+        "baseValue": {
+          "0": "30",
+          "1": "30",
+          "2": "60",
+          "3": "120"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "0",
+          "2": "4",
+          "3": "12",
+          "4": "16",
+          "5": "12",
+          "6": "0",
+          "7": "0",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "75",
+          "1": "75",
+          "2": "75",
+          "3": "75"
+        },
+        "description": {
+          "0": "{Death Cloud}\n\nCauses a deadly cloud to cover the selected target and any adjacent units.\n",
+          "1": "{Basic Death Cloud}\n\nCauses a deafly cloud to cover the selected target and any adjacent units.\n",
+          "2": "{Advanced Death Cloud}\n\nCauses a deadly cloud to cover the selected target and any adjacent units.\n\nDamage inflicted is 30 points more than Basic Death Cloud.\n",
+          "3": "{Expert Death Cloud}\n\nCauses a deadly cloud to cover the selected target and any adjacent units.\n\nDamage inflicted is 90 points more than Basic Death Cloud.\n"
+        }
+      },
+      "83": {
+        "type": "1",
+        "soundName": "Deathblo.wav",
+        "flags": "266261",
+        "name": "Death Blow",
+        "shortName": "Death Blow",
+        "level": "5",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "25",
+          "1": "20",
+          "2": "20",
+          "3": "20"
+        },
+        "baseValue": {
+          "0": "40",
+          "1": "40",
+          "2": "50",
+          "3": "60"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "8",
+          "2": "8",
+          "3": "12",
+          "4": "16",
+          "5": "12",
+          "6": "0",
+          "7": "0",
+          "8": "8"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "75",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Death Blow}\n\nDoubles the amount of damage inflicted by a friendly unit with 40% chance.\n",
+          "1": "{Basic Death Blow}\n\nDoubles the amount of damage inflicted by a friendly unit with 40% chance.\n",
+          "2": "{Advanced Death Blow}\n\nDoubles the amount of damage inflicted by a friendly unit with 50% chance.\n",
+          "3": "{Expert Death Blow}\n\nDoubles the amount of damage inflicted by a friendly unit with 60% chance.\n"
+        }
+      },
+      "84": {
+        "type": "1",
+        "soundName": "DrainLif.wav",
+        "animationIndex": "74",
+        "flags": "266261",
+        "name": "Drain Life",
+        "shortName": "Drain Life",
+        "level": "5",
+        "school": "8",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "30",
+          "1": "25",
+          "2": "25",
+          "3": "25"
+        },
+        "baseValue": {
+          "0": "30",
+          "1": "30",
+          "2": "40",
+          "3": "50"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "2",
+          "2": "4",
+          "3": "8",
+          "4": "10",
+          "5": "8",
+          "6": "0",
+          "7": "0",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "75",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Drain Life}\n\nGives the selected unit the ability to drain life from enemies, allowing to restore its health and even to resurrect fallen allies.\n",
+          "1": "{Basic Drain Life}\n\nGives the selected unit the ability to drain life from enemies, allowing to restore its health and even to resurrect fallen allies.\n",
+          "2": "{Advanced Drain Life}\n\nGives the selected unit the ability to drain life from enemies, allowing to restore its health and even to resurrect fallen allies.\n\nEffect is greater than that of Basic Drain Life.\n",
+          "3": "{Expert Drain Life}\n\nGives the selected unit the ability to drain life from enemies, allowing to restore its health and even to resurrect fallen allies.\n\nEffect is greater than that of Advanced Drain Life.\n"
+        }
+      },
+      "85": {
+        "type": "0",
+        "soundName": "SumnElm.wav",
+        "animationIndex": "36",
+        "flags": "524289",
+        "name": "Summon Sprite",
+        "shortName": "Sprite",
+        "level": "3",
+        "school": "1",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "15",
+          "1": "12",
+          "2": "12",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "2",
+          "1": "2",
+          "2": "3",
+          "3": "4"
+        },
+        "chanceToGet": {
+          "0": "4",
+          "1": "12",
+          "2": "8",
+          "3": "0",
+          "4": "0",
+          "5": "0",
+          "6": "2",
+          "7": "2",
+          "8": "8"
+        },
+        "aiValue": {
+          "0": "25",
+          "1": "25",
+          "2": "50",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Summon Sprite}\n\nAllows you to summon sprites.\n",
+          "1": "{Basic Summon Sprite}\n\nAllows you to summon sprites.\n",
+          "2": "{Advanced Summon Sprite}\n\nAllows you to summon sprites.\n\nSummons approximately one-and-a-half times the number of units as Basic Summon Sprite.\n",
+          "3": "{Expert Summon Sprite}\n\nAllows you to summon sprites.\n\nSummons approximately twice the number of units as Basic Summon Sprite.\n"
+        }
+      },
+      "86": {
+        "type": "0",
+        "soundName": "SumnElm.wav",
+        "animationIndex": "36",
+        "flags": "524289",
+        "name": "Summon Magic Elemental",
+        "shortName": "Magic Elemental",
+        "level": "5",
+        "school": "15",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "30",
+          "1": "25",
+          "2": "25",
+          "3": "25"
+        },
+        "baseValue": {
+          "0": "2",
+          "1": "2",
+          "2": "3",
+          "3": "4"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "12",
+          "2": "16",
+          "3": "10",
+          "4": "0",
+          "5": "10",
+          "6": "0",
+          "7": "0",
+          "8": "12"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "100",
+          "3": "150"
+        },
+        "description": {
+          "0": "{Summon Magic Elemental}\n\nAllows you to summon magic elementals.  Once cast, no other elemental types may be summoned.\n",
+          "1": "{Basic Summon Magic Elemental}\n\nAllows you to summon magic elementals.  Once cast, no other elemental types may be summoned.\n",
+          "2": "{Advanced Summon Magic Elemental}\n\nAllows you to summon magic elementals.  Once cast, no other elemental types may be summoned.\n\nSummons approximately one-and-a-half times the number of units as Basic Summon Magic Elemental.\n",
+          "3": "{Expert Summon Magic Elemental}\n\nAllows you to summon magic elementals.  Once cast, no other elemental types may be summoned.\n\nSummons approximately twice the number of units as Basic Summon Magic Elemental.\n"
+        }
+      },
+      "87": {
+        "type": "0",
+        "soundName": "SumnElm.wav",
+        "animationIndex": "36",
+        "flags": "524289",
+        "name": "Summon Firebird",
+        "shortName": "Firebird",
+        "level": "5",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "30",
+          "1": "25",
+          "2": "25",
+          "3": "25"
+        },
+        "baseValue": {
+          "0": "2",
+          "1": "2",
+          "2": "3",
+          "3": "4"
+        },
+        "chanceToGet": {
+          "0": "0",
+          "1": "16",
+          "2": "12",
+          "3": "0",
+          "4": "0",
+          "5": "0",
+          "6": "0",
+          "7": "0",
+          "8": "12"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "100",
+          "3": "150"
+        },
+        "description": {
+          "0": "{Summon Firebird}\n\nAllows you to summon firebirds.\n",
+          "1": "{Basic Summon Firebird}\n\nAllows you to summon firebirds.\n",
+          "2": "{Advanced Summon Firebird}\n\nAllows you to summon firebirds.\n\nSummons approximately one-and-a-half times the number of units as Basic Summon Firebird.\n",
+          "3": "{Expert Summon Firebird}\n\nAllows you to summon firebirds.\n\nSummons approximately twice the number of units as Basic Summon Firebird.\n"
+        }
+      },
+      "88": {
+        "type": "0",
+        "soundName": "Mirth.wav",
+        "animationIndex": "36",
+        "flags": "2",
+        "name": "Mobility",
+        "shortName": "Mobility",
+        "level": "4",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "16",
+          "1": "12",
+          "2": "12",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "300",
+          "1": "300",
+          "2": "300",
+          "3": "300"
+        },
+        "chanceToGet": {
+          "0": "10",
+          "1": "10",
+          "2": "10",
+          "3": "10",
+          "4": "10",
+          "5": "10",
+          "6": "0",
+          "7": "0",
+          "8": "10"
+        },
+        "aiValue": {
+          "0": "1",
+          "1": "1",
+          "2": "1",
+          "3": "1"
+        },
+        "description": {
+          "0": "{Mobility}\n\nOnce per day, you may slightly increase the selected hero's movement.\n",
+          "1": "{Basic Mobility}\n\nTwice per day, you may slightly increase the selected hero's movement.\n",
+          "2": "{Advanced Mobility}\n\nThree times per day, you may slightly increase the selected hero's movement.\n",
+          "3": "{Expert Mobility}\n\nFour times per day, you may slightly increase the selected hero's movement.\n"
+        }
+      },
+      "89": {
+        "type": "0",
+        "soundName": "Mirrorim.wav",
+        "animationIndex": "36",
+        "flags": "2",
+        "name": "Eye of the Magi",
+        "shortName": "Eye of the Magi",
+        "level": "2",
+        "school": "1",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "7",
+          "1": "5",
+          "2": "5",
+          "3": "5"
+        },
+        "baseValue": {
+          "0": "2",
+          "1": "2",
+          "2": "2",
+          "3": "2"
+        },
+        "chanceToGet": {
+          "0": "4",
+          "1": "4",
+          "2": "8",
+          "3": "6",
+          "4": "4",
+          "5": "6",
+          "6": "4",
+          "7": "4",
+          "8": "6"
+        },
+        "aiValue": {
+          "0": "1",
+          "1": "1",
+          "2": "1",
+          "3": "1"
+        },
+        "description": {
+          "0": "{Eye of the Magi}\n\nOnce per day, you may reveal the uncharted territory near your hero.\n",
+          "1": "{Basic Eye of the Magi}\n\nTwice per day, you may reveal the uncharted territory near your hero.\n",
+          "2": "{Advanced Eye of the Magi}\n\nThree times per day, you may reveal the uncharted territory near your hero.\n",
+          "3": "{Expert Eye of the Magi}\n\nFour times per day, you may reveal the uncharted territory near your hero.\n"
+        }
+      },
+      "90": {
+        "type": "1",
+        "soundName": "Sysmsg.wav",
+        "flags": "266261",
+        "name": "Toughness",
+        "shortName": "Toughness",
+        "level": "4",
+        "school": "4",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "20",
+          "1": "16",
+          "2": "16",
+          "3": "16"
+        },
+        "baseValue": {
+          "0": "130",
+          "1": "130",
+          "2": "140",
+          "3": "150"
+        },
+        "chanceToGet": {
+          "0": "10",
+          "1": "10",
+          "2": "10",
+          "3": "10",
+          "4": "10",
+          "5": "10",
+          "6": "0",
+          "7": "0",
+          "8": "5"
+        },
+        "aiValue": {
+          "0": "20",
+          "1": "20",
+          "2": "40",
+          "3": "60"
+        },
+        "description": {
+          "0": "{Toughness}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "1": "{Basic Toughness}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n",
+          "2": "{Advanced Toughness}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is one spoon of porridge more than that of Basic Toughness.\n",
+          "3": "{Expert Toughness}\n\nMakes the selected unit healthy, like a child who ate a lot of porridge.\n\nEffect is two spoons of porridge more than that of Basic Toughness.\n"
+        }
+      },
+      "91": {
+        "type": "1",
+        "soundName": "Cntrstrk.wav",
+        "flags": "266261",
+        "name": "Behemoth's Claws",
+        "shortName": "Behemoth's Claws",
+        "level": "4",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "20",
+          "1": "16",
+          "2": "16",
+          "3": "16"
+        },
+        "baseValue": {
+          "0": "60",
+          "1": "60",
+          "2": "40",
+          "3": "20"
+        },
+        "chanceToGet": {
+          "0": "5",
+          "1": "5",
+          "2": "5",
+          "3": "5",
+          "4": "5",
+          "5": "5",
+          "6": "0",
+          "7": "0",
+          "8": "5"
+        },
+        "aiValue": {
+          "0": "20",
+          "1": "20",
+          "2": "40",
+          "3": "60"
+        },
+        "description": {
+          "0": "{Behemoth's Claws}\n\nMakes a friendly unit's attacks as fierce as Behemoth's.\n",
+          "1": "{Basic Behemoth's Claws}\n\nMakes a friendly unit's attacks as fierce as Behemoth's.\n",
+          "2": "{Advanced Behemoth's Claws}\n\nMakes a friendly unit's attacks as fierce as Behemoth's.\n\nEffect is twice that of Basic Behemoth's Claws.\n",
+          "3": "{Expert Behemoth's Claws}\n\nMakes a friendly unit's attacks as fierce as Behemoth's.\n\nEffect is four times that of Basic Behemoth's Claws.\n"
+        }
+      },
+      "92": {
+        "type": "0",
+        "soundName": "Incinera.wav",
+        "flags": "33409",
+        "name": "Incineration",
+        "shortName": "Incineration",
+        "level": "5",
+        "school": "2",
+        "spEffect": "35",
+        "manaCost": {
+          "0": "25",
+          "1": "20",
+          "2": "20",
+          "3": "20"
+        },
+        "baseValue": {
+          "0": "50",
+          "1": "50",
+          "2": "100",
+          "3": "200"
+        },
+        "chanceToGet": {
+          "0": "5",
+          "1": "5",
+          "2": "5",
+          "3": "10",
+          "4": "5",
+          "5": "5",
+          "6": "0",
+          "7": "0",
+          "8": "10"
+        },
+        "aiValue": {
+          "0": "100",
+          "1": "100",
+          "2": "100",
+          "3": "100"
+        },
+        "description": {
+          "0": "{Incineration}\n\nEngulfs the selected target and any adjacent units in blazing flames.\n",
+          "1": "{Basic Incineration}\n\nEngulfs the selected target and any adjacent units in blazing flames.\n",
+          "2": "{Advanced Incineration}\n\nEngulfs the selected target and any adjacent units in blazing flames.\n\nDamage inflicted is 50 points more than Basic Incineration.\n",
+          "3": "{Expert Incineration}\n\nEngulfs the selected target and any adjacent units in blazing flames.\n\nDamage inflicted is 150 points more than Basic Incineration.\n"
+        }
+      },
+      "93": {
+        "type": "-1",
+        "soundName": "Explosion.wav",
+        "animationIndex": "82",
+        "flags": "33297",
+        "name": "Explosion",
+        "shortName": "Explosion",
+        "level": "3",
+        "school": "2",
+        "spEffect": "30",
+        "manaCost": {
+          "0": "15",
+          "1": "12",
+          "2": "12",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "25",
+          "1": "25",
+          "2": "50",
+          "3": "100"
+        },
+        "chanceToGet": {
+          "0": "8",
+          "1": "8",
+          "2": "20",
+          "3": "20",
+          "4": "12",
+          "5": "16",
+          "6": "12",
+          "7": "2",
+          "8": "12"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "50",
+          "3": "50"
+        },
+        "description": {
+          "0": "{Explosion}\n\nJust explodes the selected unit. Poof!\n",
+          "1": "{Basic Explosion}\n\nJust explodes the selected unit. Poof!\n",
+          "2": "{Advanced Explosion}\n\nJust explodes the selected unit. Poof!\n\nDamage inflicted is 25 points more than Basic Explosion.\n",
+          "3": "{Expert Explosion}\n\nJust explodes the selected unit. Poof!\n\nDamage inflicted is 75 points more than Basic Explosion.\n"
+        }
+      },
+      "94": {
+        "type": "1",
+        "soundName": "HourOPow.wav",
+        "flags": "266261",
+        "name": "Hour of Power",
+        "shortName": "Hour of Power",
+        "level": "5",
+        "school": "4",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "30",
+          "1": "25",
+          "2": "20",
+          "3": "17"
+        },
+        "baseValue": {
+          "0": "150",
+          "1": "150",
+          "2": "150",
+          "3": "150"
+        },
+        "chanceToGet": {
+          "0": "15",
+          "1": "10",
+          "2": "20",
+          "3": "3",
+          "4": "0",
+          "5": "5",
+          "6": "0",
+          "7": "0",
+          "8": "18"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "60",
+          "2": "60",
+          "3": "120"
+        },
+        "description": {
+          "0": "{Hour of Power}\n\nCombined power of Water and Light gives a selected friendly unit great powers, doesn't work on the undead.\n",
+          "1": "{Basic Hour of Power}\n\nCombined power of Water and Light gives a selected friendly unit great powers, doesn't work on the undead.\n",
+          "2": "{Advanced Hour of Power}\n\nCombined power of Water and Light gives a selected friendly unit great powers, doesn't work on the undead.\n",
+          "3": "{Expert Hour of Power}\n\nCombined power of Water and Light gives a selected friendly unit great powers, doesn't work on the undead.\n"
+        }
+      },
+      "95": {
+        "type": "0",
+        "soundName": "GldTouch.wav",
+        "flags": "37393",
+        "name": "Golden Touch",
+        "shortName": "Golden Touch",
+        "level": "3",
+        "school": "2",
+        "spEffect": "25",
+        "manaCost": {
+          "0": "15",
+          "1": "13",
+          "2": "12",
+          "3": "10"
+        },
+        "baseValue": {
+          "0": "25",
+          "1": "25",
+          "2": "25",
+          "3": "25"
+        },
+        "chanceToGet": {
+          "0": "15",
+          "1": "10",
+          "2": "30",
+          "3": "10",
+          "4": "15",
+          "5": "25",
+          "6": "5",
+          "7": "5",
+          "8": "20"
+        },
+        "aiValue": {
+          "0": "50",
+          "1": "50",
+          "2": "50",
+          "3": "75"
+        },
+        "description": {
+          "0": "{Golden Touch}\n\nAfter inflicting damage to the selected target, transmutes killed creatures to pure gold.\n",
+          "1": "{Basic Golden Touch}\n\nAfter inflicting damage to the selected target, transmutes killed creatures to pure gold.\n",
+          "2": "{Advanced Golden Touch}\n\nAfter inflicting damage to the selected target, transmutes killed creatures to pure gold.\n",
+          "3": "{Expert Golden Touch}\n\nAfter inflicting damage to the selected target and any adjacent units, transmutes killed creatures to pure gold.\n"
+        }
+      }
+    }
+  },
+  "NewSpells": {
+    "Config": {
+      "MaxSpellId": "95"
+    },
+    "Spells": {
+      "81": {
+        "animationKey": "Fear"
+      },
+      "82": {
+        "animationKey": "DeathCloud"
+      },
+      "83": {
+        "animationKey": "DeathBlow"
+      },
+      "88": {
+        "requiresBattleBetweenCasts": "1"
+      },
+      "90": {
+        "animationKey": "Toughness"
+      },
+      "91": {
+        "animationKey": "Claws"
+      },
+      "92": {
+        "animationKey": "Incineration",
+        "permanentCasualties": "1"
+      },
+      "93": {
+        "temporarySpeedPenalty": "1"
+      },
+      "94": {
+        "animationKey": "HourOfPower",
+        "maxDurationRounds": "3"
+      },
+      "95": {
+        "animationKey": "GoldenTouch"
+      }
+    },
+    "Mobility": {
+      "WinBattleMessage": "%s must win a battle to cast this spell again today.\n"
+    },
+    "Golden Touch": {
+      "CombatLogMessage": "gold received.",
+      "WinBattleMessage": "{Golden Touch} brings you"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{A2383477-F466-4AFE-BB18-E94333A12E19}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{8DF1CF94-8902-4E91-A3C9-E84D55D015B4}</UniqueIdentifier>
+      <Extensions>h;hpp</Extensions>
+    </Filter>
+    <Filter Include="ERA">
+      <UniqueIdentifier>{C122A744-0EF5-411A-AE79-49D58228D17E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="Reinforcements.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="Blizzard.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="stdafx.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="..\NewSpells\ERA\era.cpp"><Filter>ERA</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Reinforcements.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="Blizzard.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="BlizzardMath.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="stdafx.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="targetver.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="..\NewSpells\NewSpellsProviderApi.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
+</Project>

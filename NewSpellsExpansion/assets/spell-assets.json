@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "archive": "NewSpellsExpansion_png_data.zip",
+  "spells": [
+    {
+      "provider": "HD.Plugin.H3.NewSpellsExpansion",
+      "spellKey": "Reinforcements",
+      "spellId": 96,
+      "icons": [
+        {
+          "def": "spells.def",
+          "source": "source/spells-96.png"
+        },
+        {
+          "def": "SpellScr.def",
+          "source": "source/SpellScr-96.png"
+        },
+        {
+          "def": "SpellBon.def",
+          "source": "source/SpellBon-96.png"
+        },
+        {
+          "def": "SpellInt.def",
+          "source": "source/SpellInt-97.png"
+        }
+      ]
+    },
+    {
+      "provider": "HD.Plugin.H3.NewSpellsExpansion",
+      "spellKey": "Blizzard",
+      "spellId": 97,
+      "icons": [
+        {
+          "def": "spells.def",
+          "source": "source/spells-97.png"
+        },
+        {
+          "def": "SpellScr.def",
+          "source": "source/SpellScr-97.png"
+        },
+        {
+          "def": "SpellBon.def",
+          "source": "source/SpellBon-97.png"
+        },
+        {
+          "def": "SpellInt.def",
+          "source": "source/SpellInt-98.png"
+        }
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "name": "NSEBLIZ.def",
+      "source": "source/NSEBLIZ.def"
+    }
+  ]
+}

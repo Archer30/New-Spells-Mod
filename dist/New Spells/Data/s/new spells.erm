@@ -1,0 +1,33 @@
+ZVSE2
+; Author:   Archer30
+; Engine:   ERM 2.0+
+; Requires: ERA 3.9+
+
+!#DC(NEW_SPELLS_LAST_WOG_SPELL_ID) = 69;
+
+; Public runtime range helper for New Spells. Spell metadata, hero spell access
+; and text are handled natively by SS, HE:M and SN:H.
+
+; Return the highest defined hero-spell ID. New Spells patches 0x402902 with
+; the physical spell-table size, which can include reserved or creature-only
+; records. Legacy IDs retain their normal WoG behaviour; extended IDs must be
+; a level 1..5 spell without the native creature-spell flag (bit 0x8).
+!?FU(GetMaxSpellId);
+!#VA(result:x);
+
+!!VR(result):S(NEW_SPELLS_LAST_WOG_SPELL_ID);
+!!UN:C4204802/-1/?(numSpells:y); [0x402902, unsigned byte]
+!!VR(lastPhysicalSpellId:y):S(numSpells) -1;
+!!VR(firstExtendedSpellId:y):S(NEW_SPELLS_LAST_WOG_SPELL_ID) +1;
+
+!!if&(lastPhysicalSpellId)>=(firstExtendedSpellId);
+  !!re (spell:y)/(lastPhysicalSpellId)/(firstExtendedSpellId)/-1;
+    !!SS(spell):L?(level:y) F?(flags:y);
+    !!VR(creatureFlag:y):S(flags) &8;
+
+    !!if&(level)>=1/(level)<=5/(creatureFlag)=0;
+      !!VR(result):S(spell);
+      !!br;
+    !!en;
+  !!en;
+!!en;

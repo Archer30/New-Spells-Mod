@@ -1,0 +1,40 @@
+<Project>
+  <ItemDefinitionGroup Condition="'$(BmgBaselineProbe)' == 'true' and '$(MSBuildProjectName)' == 'NewSpells'">
+    <ClCompile><PreprocessorDefinitions>NEWSPELLS_BMG_BASELINE_PROBE;NEWSPELLS_BMG_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(BmgNativeProbe)' == 'true' and '$(MSBuildProjectName)' == 'NewSpells'">
+    <ClCompile><PreprocessorDefinitions>NEWSPELLS_BMG_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(BlizzardNativeProbe)' == 'true' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <ClCompile><PreprocessorDefinitions>NEWSPELLS_BLIZZARD_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <ReleaseMapPath>$(IntDir)$(TargetName).map</ReleaseMapPath>
+    <ReleaseDbgMapDir>$(OutDir)DebugMaps\</ReleaseDbgMapDir>
+    <ReleaseDbgMapPath>$(ReleaseDbgMapDir)$(TargetName).dbgmap</ReleaseDbgMapPath>
+    <MapToDbgmapExe>$(MSBuildThisFileDirectory)tools\MapToDbgmap\bin\MapToDbgmap.exe</MapToDbgmapExe>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(ReleaseMapPath)</MapFileName>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)tools\MapToDbgmap\MapToDbgmap.vcxproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>OutDir;IntDir;TargetName;TargetExt</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="PrepareReleaseDbgMap" BeforeTargets="Link"
+          Condition="'$(Configuration)' == 'Release' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <MakeDir Directories="$(ReleaseDbgMapDir)" />
+  </Target>
+  <Target Name="CompileReleaseDbgMap" AfterTargets="Link"
+          Condition="'$(Configuration)' == 'Release' and '$(ConfigurationType)' == 'DynamicLibrary'">
+    <Error Condition="!Exists('$(ReleaseMapPath)')" Text="Missing linker map: $(ReleaseMapPath)" />
+    <Error Condition="!Exists('$(MapToDbgmapExe)')" Text="Missing map converter: $(MapToDbgmapExe)" />
+    <Exec Command="&quot;$(MapToDbgmapExe)&quot; &quot;$(ReleaseMapPath)&quot; &quot;$(ReleaseDbgMapPath)&quot;" />
+  </Target>
+</Project>

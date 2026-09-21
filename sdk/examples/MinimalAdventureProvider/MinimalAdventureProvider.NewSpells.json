@@ -1,0 +1,41 @@
+{
+  "era": {
+    "spells": {
+      "97": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "0",
+        "flags": "2",
+        "name": "SDK Example Adventure Spell",
+        "shortName": "SDK Example",
+        "level": "1",
+        "school": "15",
+        "spEffect": "0",
+        "manaCost": { "0": "5", "1": "4", "2": "3", "3": "2" },
+        "baseValue": { "0": "0", "1": "0", "2": "0", "3": "0" },
+        "chanceToGet": {
+          "0": "0", "1": "0", "2": "0", "3": "0", "4": "0",
+          "5": "0", "6": "0", "7": "0", "8": "0"
+        },
+        "aiValue": { "0": "0", "1": "0", "2": "0", "3": "0" },
+        "description": {
+          "0": "Safe SDK skeleton: replace CastAdventure before use.",
+          "1": "Safe SDK skeleton: replace CastAdventure before use.",
+          "2": "Safe SDK skeleton: replace CastAdventure before use.",
+          "3": "Safe SDK skeleton: replace CastAdventure before use."
+        }
+      }
+    }
+  },
+  "NewSpells": {
+    "ExternalSpells": {
+      "97": {
+        "provider": "HD.Plugin.H3.NewSpellsSdkExample",
+        "spellKey": "ExampleAdventure",
+        "kind": "adventure",
+        "editorVisible": "0",
+        "capabilities": "1"
+      }
+    }
+  }
+}

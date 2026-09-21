@@ -1,0 +1,138 @@
+{
+  "era": {
+    "spells": {
+      "123": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "0",
+        "flags": "266261",
+        "name": "SDK Targeted Timed-Status Test",
+        "shortName": "SDK Targeted",
+        "level": "1",
+        "school": "15",
+        "spEffect": "2",
+        "manaCost": { "0": "1", "1": "1", "2": "1", "3": "1" },
+        "baseValue": { "0": "2", "1": "2", "2": "2", "3": "2" },
+        "chanceToGet": {
+          "0": "0", "1": "0", "2": "0", "3": "0", "4": "0",
+          "5": "0", "6": "0", "7": "0", "8": "0"
+        },
+        "aiValue": { "0": "100", "1": "100", "2": "100", "3": "100" },
+        "description": {
+          "0": "Non-shipped targeted probe for timed status, source routing, cure, dispel, lifecycle, and combat AI.",
+          "1": "Non-shipped targeted probe for timed status, source routing, cure, dispel, lifecycle, and combat AI.",
+          "2": "Non-shipped targeted probe for timed status, source routing, cure, dispel, lifecycle, and combat AI.",
+          "3": "Non-shipped targeted probe for timed status, source routing, cure, dispel, lifecycle, and combat AI."
+        }
+      },
+      "124": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "0",
+        "flags": "103041",
+        "name": "SDK Area Damage Test",
+        "shortName": "SDK Area",
+        "level": "1",
+        "school": "15",
+        "spEffect": "25",
+        "manaCost": { "0": "1", "1": "1", "2": "1", "3": "1" },
+        "baseValue": { "0": "25", "1": "25", "2": "25", "3": "25" },
+        "chanceToGet": {
+          "0": "0", "1": "0", "2": "0", "3": "0", "4": "0",
+          "5": "0", "6": "0", "7": "0", "8": "0"
+        },
+        "aiValue": { "0": "200", "1": "200", "2": "200", "3": "200" },
+        "description": {
+          "0": "Non-shipped area-targeting damage-cast routing probe.",
+          "1": "Non-shipped area-targeting damage-cast routing probe.",
+          "2": "Non-shipped area-targeting damage-cast routing probe.",
+          "3": "Non-shipped area-targeting damage-cast routing probe."
+        }
+      },
+      "125": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "0",
+        "flags": "3",
+        "name": "SDK Global Hybrid Test",
+        "shortName": "SDK Global",
+        "level": "1",
+        "school": "15",
+        "spEffect": "0",
+        "manaCost": { "0": "1", "1": "1", "2": "1", "3": "1" },
+        "baseValue": { "0": "0", "1": "0", "2": "0", "3": "0" },
+        "chanceToGet": {
+          "0": "0", "1": "0", "2": "0", "3": "0", "4": "0",
+          "5": "0", "6": "0", "7": "0", "8": "0"
+        },
+        "aiValue": { "0": "300", "1": "300", "2": "300", "3": "300" },
+        "description": {
+          "0": "Non-shipped global hybrid probe for adventure and combat casts plus both AI callbacks.",
+          "1": "Non-shipped global hybrid probe for adventure and combat casts plus both AI callbacks.",
+          "2": "Non-shipped global hybrid probe for adventure and combat casts plus both AI callbacks.",
+          "3": "Non-shipped global hybrid probe for adventure and combat casts plus both AI callbacks."
+        }
+      },
+      "126": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "0",
+        "flags": "524289",
+        "name": "SDK Summon Test",
+        "shortName": "SDK Summon",
+        "level": "1",
+        "school": "15",
+        "spEffect": "1",
+        "manaCost": { "0": "1", "1": "1", "2": "1", "3": "1" },
+        "baseValue": { "0": "1", "1": "1", "2": "1", "3": "1" },
+        "chanceToGet": {
+          "0": "0", "1": "0", "2": "0", "3": "0", "4": "0",
+          "5": "0", "6": "0", "7": "0", "8": "0"
+        },
+        "aiValue": { "0": "400", "1": "400", "2": "400", "3": "400" },
+        "description": {
+          "0": "Non-shipped summon-mode routing probe; the provider owns any real summoned state.",
+          "1": "Non-shipped summon-mode routing probe; the provider owns any real summoned state.",
+          "2": "Non-shipped summon-mode routing probe; the provider owns any real summoned state.",
+          "3": "Non-shipped summon-mode routing probe; the provider owns any real summoned state."
+        }
+      }
+    }
+  },
+  "NewSpells": {
+    "ExternalSpells": {
+      "123": {
+        "provider": "HD.Plugin.H3.NewSpellsSdkTest",
+        "spellKey": "TargetedTimedStatus",
+        "kind": "combat",
+        "combatTargetMode": "targeted",
+        "editorVisible": "0",
+        "capabilities": "2046"
+      },
+      "124": {
+        "provider": "HD.Plugin.H3.NewSpellsSdkTest",
+        "spellKey": "AreaDamage",
+        "kind": "combat",
+        "combatTargetMode": "area",
+        "editorVisible": "0",
+        "capabilities": "1926"
+      },
+      "125": {
+        "provider": "HD.Plugin.H3.NewSpellsSdkTest",
+        "spellKey": "GlobalHybrid",
+        "kind": "hybrid",
+        "combatTargetMode": "global",
+        "editorVisible": "0",
+        "capabilities": "3207"
+      },
+      "126": {
+        "provider": "HD.Plugin.H3.NewSpellsSdkTest",
+        "spellKey": "Summon",
+        "kind": "combat",
+        "combatTargetMode": "summon",
+        "editorVisible": "0",
+        "capabilities": "1926"
+      }
+    }
+  }
+}

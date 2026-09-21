@@ -1,0 +1,141 @@
+{
+  "era": {
+    "spells": {
+      "96": {
+        "type": "0",
+        "soundName": "Disguise.wav",
+        "animationIndex": "36",
+        "flags": "2",
+        "name": "Reinforcements",
+        "shortName": "Reinforcements",
+        "level": "3",
+        "school": "2",
+        "spEffect": "0",
+        "manaCost": {
+          "0": "15",
+          "1": "14",
+          "2": "13",
+          "3": "12"
+        },
+        "baseValue": {
+          "0": "0",
+          "1": "0",
+          "2": "0",
+          "3": "0"
+        },
+        "chanceToGet": {
+          "0": "2",
+          "1": "2",
+          "2": "2",
+          "3": "4",
+          "4": "2",
+          "5": "2",
+          "6": "2",
+          "7": "0",
+          "8": "2"
+        },
+        "aiValue": {
+          "0": "1",
+          "1": "1",
+          "2": "1",
+          "3": "1"
+        },
+        "description": {
+          "0": "{Reinforcements}\n\nHero can summon creatures from the closest town garrison once per day.",
+          "1": "{Basic Reinforcements}\n\nHero can summon creatures from the closest town garrison up to 2 times per day.",
+          "2": "{Advanced Reinforcements}\n\nHero can summon creatures from any town garrison up to 3 times per day.",
+          "3": "{Expert Reinforcements}\n\nHero can summon creatures from any town garrison up to 4 times per day."
+        }
+      },
+      "97": {
+        "type": "0",
+        "soundName": "Removeob.wav",
+        "animationIndex": "34",
+        "flags": "66177",
+        "name": "Blizzard",
+        "shortName": "Blizzard",
+        "level": "5",
+        "school": "4",
+        "spEffect": "20",
+        "manaCost": {
+          "0": "25",
+          "1": "20",
+          "2": "20",
+          "3": "20"
+        },
+        "baseValue": {
+          "0": "30",
+          "1": "30",
+          "2": "60",
+          "3": "120"
+        },
+        "chanceToGet": {
+          "0": "4",
+          "1": "4",
+          "2": "6",
+          "3": "4",
+          "4": "4",
+          "5": "4",
+          "6": "4",
+          "7": "4",
+          "8": "4"
+        },
+        "aiValue": {
+          "0": "1",
+          "1": "1",
+          "2": "1",
+          "3": "1"
+        },
+        "description": {
+          "0": "{Blizzard}\n\nDeals 20 × Spell Power + 30 damage to all troops within two hexes of the target, including allies. Surviving troops lose 2 base speed (minimum 1) for the rest of the battle. The penalty cannot be dispelled. Repeated casts deal damage but do not stack or replace the first speed penalty.",
+          "1": "{Basic Blizzard}\n\nDeals 20 × Spell Power + 30 damage to all troops within two hexes of the target, including allies. Surviving troops lose 2 base speed (minimum 1) for the rest of the battle. The penalty cannot be dispelled. Repeated casts deal damage but do not stack or replace the first speed penalty.",
+          "2": "{Advanced Blizzard}\n\nDeals 20 × Spell Power + 60 damage to all troops within two hexes of the target, including allies. Surviving troops lose 4 base speed (minimum 1) for the rest of the battle. The penalty cannot be dispelled. Repeated casts deal damage but do not stack or replace the first speed penalty.",
+          "3": "{Expert Blizzard}\n\nDeals 20 × Spell Power + 120 damage to all troops within two hexes of the target, including allies. Surviving troops lose 4 base speed (minimum 1) for the rest of the battle. The penalty cannot be dispelled. Repeated casts deal damage but do not stack or replace the first speed penalty."
+        }
+      }
+    }
+  },
+  "NewSpells": {
+    "ExternalSpells": {
+      "96": {
+        "provider": "HD.Plugin.H3.NewSpellsExpansion",
+        "spellKey": "Reinforcements",
+        "kind": "adventure",
+        "editorVisible": "1",
+        "capabilities": "1"
+      },
+      "97": {
+        "provider": "HD.Plugin.H3.NewSpellsExpansion",
+        "spellKey": "Blizzard",
+        "kind": "combat",
+        "combatTargetMode": "area",
+        "editorVisible": "1",
+        "capabilities": "2046",
+        "animationKey": "HD.Plugin.H3.NewSpellsExpansion.Blizzard.Area",
+        "animationDef": "NSEBLIZ.def",
+        "animationName": "Area",
+        "animationType": "1"
+      }
+    }
+  },
+  "NewSpellsExpansion": {
+    "Spells": {
+      "Reinforcements": {
+        "Dialog": {
+          "Header": "Garrison of @townName@",
+          "Text": "Select a town to call for reinforcements:",
+          "Select": "Open gates for Reinforcements",
+          "Previous": "Previous",
+          "Next": "Next",
+          "Error": {
+            "LastStack": "You can't transfer the last stack.",
+            "WrongTarget": "Only troops borrowed from this town may be moved back. A borrowed stack merged with your hero's original troops must stay with the hero.",
+            "NoTown": "There is no eligible town from which to call reinforcements."
+          }
+        },
+        "LimitMessage": "@heroName@ has reached the spell limit of @limit@ casts per day.",
+        "MovementMessage": "Your hero is too tired to cast the spell today. Try again tomorrow."
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "caption": {
+    "en_US": "New Spells Mod",
+    "ru_RU": "Новые Заклинания",
+    "zh_CN": "新魔法Mod"
+  },
+  "description": {
+    "full": {
+      "en_US": "README.md",
+      "ru_RU": "readme_ru.txt",
+      "zh_CN": "readme_cn.txt"
+    },
+    "short": {
+      "en_US": "Adds 18 spells and provides the external-spell framework.",
+      "ru_RU": "Добавляет 18 заклинаний и предоставляет платформу для внешних заклинаний.",
+      "zh_CN": "添加 18 个魔法，并提供外部魔法扩展框架。"
+    }
+  },
+  "author": "AlexSpl, Rolex, Szaman, Sokiee; ERA repair and maintenance: Archer30",
+  "homepage": "http://heroescommunity.com/viewthread.php3?TID=47171",
+  "icon": {
+    "file": "NewSpell.ico",
+    "index": 0
+  },
+  "mod_version": "2.12.3",
+  "priority": 4,
+  "compatibility": {
+    "class": "default",
+    "entries": {},
+    "requires": [],
+    "incompatible": [],
+    "load_after": [
+      "WoG",
+      "Advanced Classes Mod"
+    ]
+  },
+  "platform": "era",
+  "info_version": "2.0",
+  "plugins": {},
+  "category": "gameplay"
+}
