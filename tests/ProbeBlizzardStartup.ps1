@@ -106,7 +106,9 @@ try {
         throw "OpenProcess failed: $errorCode."
     }
 
-    $spellCount = [int](Read-ProcessBytes $processHandle 0x402902 1)[0]
+    $spellCountLog = Get-Content -LiteralPath (Join-Path $GameDirectory 'Debug\Era\log.txt') -Raw
+    if ($spellCountLog -notmatch 'Spell count (\d+)') { throw 'Startup log has no spell count.' }
+    $spellCount = [int]$Matches[1]
     $gameManager = [BitConverter]::ToUInt32(
         (Read-ProcessBytes $processHandle 0x699538 4), 0)
     $spellTable = [BitConverter]::ToUInt32(

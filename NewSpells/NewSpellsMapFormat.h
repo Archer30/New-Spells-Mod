@@ -8,8 +8,10 @@
 namespace NewSpellsMap
 {
 
-const std::uint32_t FORMAT_VERSION = 1;
-const std::uint32_t SPELL_BIT_COUNT = 128;
+const std::uint32_t FORMAT_VERSION = 2;
+const std::uint32_t SPELL_BIT_COUNT = 256;
+const std::uint32_t FORMAT_VERSION_1 = 1;
+const std::uint32_t SPELL_BIT_COUNT_1 = 128;
 const std::size_t DISABLED_BYTE_COUNT = SPELL_BIT_COUNT / 8;
 
 // These are the spells implemented by the New Spells core.  External spell
@@ -25,7 +27,7 @@ const std::size_t BUILTIN_SPELL_COUNT =
    sizeof(BUILTIN_SPELL_IDS) / sizeof(BUILTIN_SPELL_IDS[0]);
 
 const int EXTERNAL_SPELL_ID_FIRST = 96;
-const int EXTERNAL_SPELL_ID_LAST = 126;
+const int EXTERNAL_SPELL_ID_LAST = 199;
 const std::size_t EXTERNAL_SPELL_SLOT_COUNT =
    EXTERNAL_SPELL_ID_LAST - EXTERNAL_SPELL_ID_FIRST + 1;
 
@@ -56,10 +58,22 @@ struct Trailer
    std::uint32_t checksum;
    std::uint32_t totalSize;
 };
+
+// Version 1 trailers carry 128 bits, they are still read, never written.
+struct TrailerV1
+{
+   unsigned char magic[sizeof(TRAILER_MAGIC)];
+   std::uint32_t version;
+   std::uint32_t bitCount;
+   unsigned char disabled[SPELL_BIT_COUNT_1 / 8];
+   std::uint32_t checksum;
+   std::uint32_t totalSize;
+};
 #pragma pack(pop)
 
-static_assert(sizeof(State) == 16, "New Spells map state layout changed");
-static_assert(sizeof(Trailer) == 44, "New Spells map trailer layout changed");
+static_assert(sizeof(State) == 32, "New Spells map state layout changed");
+static_assert(sizeof(Trailer) == 60, "New Spells map trailer layout changed");
+static_assert(sizeof(TrailerV1) == 44, "New Spells map trailer v1 layout changed");
 
 inline void Clear(State& state)
 {
@@ -111,7 +125,7 @@ inline void SetDisabled(State& state, const int spellId, const bool disabled)
 
 inline bool AnyDisabled(const State& state)
 {
-   // The trailer is a 128-bit shared persistence record.  Bits belonging to
+   // The trailer is a 256-bit shared persistence record.  Bits belonging to
    // providers which are not currently installed must survive a map-editor
    // save, so deciding whether a trailer is needed cannot be limited to the
    // core-owned spell list.
@@ -135,11 +149,11 @@ inline std::uint32_t UpdateChecksum(std::uint32_t checksum,
    return checksum;
 }
 
-inline std::uint32_t ComputeChecksum(const Trailer& trailer)
+template <class T>
+inline std::uint32_t ComputeChecksum(const T& trailer)
 {
    std::uint32_t checksum = 2166136261u;
-   checksum = UpdateChecksum(checksum, &trailer,
-      offsetof(Trailer, checksum));
+   checksum = UpdateChecksum(checksum, &trailer, offsetof(T, checksum));
    return UpdateChecksum(checksum, &trailer.totalSize,
       sizeof(trailer.totalSize));
 }
@@ -165,6 +179,30 @@ inline bool ValidateTrailer(const Trailer& trailer)
       trailer.checksum == ComputeChecksum(trailer);
 }
 
+inline bool ValidateTrailerV1(const TrailerV1& trailer)
+{
+   return std::memcmp(trailer.magic, TRAILER_MAGIC,
+                      sizeof(TRAILER_MAGIC)) == 0 &&
+      trailer.version == FORMAT_VERSION_1 &&
+      trailer.bitCount == SPELL_BIT_COUNT_1 &&
+      trailer.totalSize == sizeof(TrailerV1) &&
+      trailer.checksum == ComputeChecksum(trailer);
+}
+
+template <class T>
+inline bool ReadTrailerAtEnd(HANDLE file, DWORD fileSize, T& trailer)
+{
+   if (fileSize < sizeof(T))
+      return false;
+   SetLastError(NO_ERROR);
+   if (SetFilePointer(file, fileSize - sizeof(T), 0, FILE_BEGIN) ==
+       INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
+      return false;
+   DWORD bytesRead = 0;
+   return ReadFile(file, &trailer, sizeof(T), &bytesRead, 0) &&
+      bytesRead == sizeof(T);
+}
+
 inline bool GetFileSize32(HANDLE file, DWORD& size)
 {
    DWORD high = 0;
@@ -188,23 +226,24 @@ inline bool ReadTrailerFromHandle(HANDLE file, State& state,
       return false;
 
    contentSize = fileSize;
-   if (fileSize < sizeof(Trailer))
-      return false;
-
-   SetLastError(NO_ERROR);
-   if (SetFilePointer(file, fileSize - sizeof(Trailer), 0, FILE_BEGIN) ==
-       INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
-      return false;
 
    Trailer trailer;
-   DWORD bytesRead = 0;
-   if (!ReadFile(file, &trailer, sizeof(trailer), &bytesRead, 0) ||
-       bytesRead != sizeof(trailer) || !ValidateTrailer(trailer))
-      return false;
+   if (ReadTrailerAtEnd(file, fileSize, trailer) && ValidateTrailer(trailer))
+   {
+      std::memcpy(state.disabled, trailer.disabled, sizeof(state.disabled));
+      contentSize = fileSize - sizeof(Trailer);
+      return true;
+   }
 
-   std::memcpy(state.disabled, trailer.disabled, sizeof(state.disabled));
-   contentSize = fileSize - sizeof(Trailer);
-   return true;
+   TrailerV1 trailerV1;
+   if (ReadTrailerAtEnd(file, fileSize, trailerV1) && ValidateTrailerV1(trailerV1))
+   {
+      std::memcpy(state.disabled, trailerV1.disabled, sizeof(trailerV1.disabled));
+      contentSize = fileSize - sizeof(TrailerV1);
+      return true;
+   }
+
+   return false;
 }
 
 inline bool ReadTrailerFileA(const char* path, State& state)

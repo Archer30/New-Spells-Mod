@@ -2,8 +2,10 @@
 
 New Spells uses ERA's merged `Lang/*.json` data as its spell-definition source.
 The core package owns IDs through 95. External provider mods may declare fixed
-IDs 96 through 126; a declaration becomes active only when a matching native
-provider registers through `NewSpellsProviderApi.h`.
+IDs 96 through 199, a declaration becomes active only when a matching native
+provider registers through `NewSpellsProviderApi.h`. A mod without a DLL can
+instead declare a data spell with `NewSpells.DataSpells.<id>`, see
+`DATA_SPELLS.md`.
 
 ## Standard spell fields
 
@@ -114,10 +116,12 @@ external declaration. `FU(GetMaxSpellId)` remains the highest structurally
 defined hero-spell ID and skips level-zero/undefined and `SF_CREATURE_SPELL`
 records.
 
-The current sidecars reserve 128 records, but several executable loops encode
-their exclusive bound as a signed byte. Consequently the supported configured
-maximum is spell ID `126` (127 active records); ID `127` remains unavailable
-until those loops are rewritten.
+The sidecars reserve 256 records and every executable bound follows the live
+spell count, so the configured maximum is spell ID `199` (200 active records,
+the size of the WoG spell table). `SPELL_ID_CEILING.md` lists the limits that
+were lifted and the two cosmetic ones that remain. ERA loads the Lang json
+after the plugins, so New Spells reads `MaxSpellId` and the
+declarations in its `OnAfterWoG` handler.
 
 Custom dynamically relocated animations use `animationKey`, not a generic
 physical `animationIndex`. Stable native animations `0..82` continue to use
@@ -127,8 +131,9 @@ declarations are capacity-checked before the relocation table is changed.
 
 ## External graphics
 
-The core PAC contains transparent carrier frames for IDs 96 through 126.
-Provider packages supply true-color PNG overrides at the standard HD/ERA paths:
+New Spells pads the four icon sheets to 256 frames when the game loads them,
+so every ID has a transparent carrier frame. Provider packages supply
+true-color PNG overrides at the standard HD/ERA paths:
 
 - `spells.def`, `SpellScr.def`, and `SpellBon.def`: frame `<spellId>`.
 - `SpellInt.def`: frame `<spellId + 1>`.
@@ -148,5 +153,7 @@ The extended `HE:M`, common AddSpell, generated/equipped spell-scroll, and
 artifact-grant paths all enforce that structural rule. Availability bans do
 not make an otherwise valid hero record fail those structural checks.
 
-The former INI `[Enabled Spells]`, per-spell `<Enabled>`, `UI.QueueFix`, and
-`CumulativeUnicornAura` options are intentionally not part of this schema.
+The former INI `[Enabled Spells]`, `UI.QueueFix` and `CumulativeUnicornAura`
+options exist as `NewSpells.Config.DisabledSpells`, `QueueFix` and
+`CumulativeUnicornAura` (see `DATA_SPELLS.md`), the per-spell `<Enabled>` key
+has no replacement.

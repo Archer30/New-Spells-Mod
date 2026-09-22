@@ -5,6 +5,9 @@
   <ItemDefinitionGroup Condition="'$(BmgNativeProbe)' == 'true' and '$(MSBuildProjectName)' == 'NewSpells'">
     <ClCompile><PreprocessorDefinitions>NEWSPELLS_BMG_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(CeilingNativeProbe)' == 'true' and '$(MSBuildProjectName)' == 'NewSpells'">
+    <ClCompile><PreprocessorDefinitions>NEWSPELLS_CEILING_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(BlizzardNativeProbe)' == 'true' and '$(ConfigurationType)' == 'DynamicLibrary'">
     <ClCompile><PreprocessorDefinitions>NEWSPELLS_BLIZZARD_NATIVE_PROBE;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
   </ItemDefinitionGroup>

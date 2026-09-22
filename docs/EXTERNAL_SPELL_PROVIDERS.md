@@ -24,7 +24,7 @@ addresses, then submits one batch. The bootstrap never retries a batch after
 could contest its own IDs. It also consumes only one deferred attempt even if
 `OnAfterWoG` fires again.
 
-Registration is accepted only for fixed spell IDs 96..126 and only before New
+Registration is accepted only for fixed spell IDs 96..199 and only before New
 Spells seals the registry. Keep the bootstrap object, batch, descriptors,
 identity strings, and callback code in static/process-lifetime storage.
 
@@ -87,4 +87,8 @@ in the existing 128-bit map trailer.
 `New Spells Expansion` is the reference provider. It registers
 `HD.Plugin.H3.NewSpellsExpansion / Reinforcements / 96` in one batch and keeps
 the spell's persistent state in the existing `NewSpells.Reinforcements`
-savegame section.
+savegame section. `sdk/examples/FortitudeProvider` is a small combat status
+provider (the built-in Toughness spell as ID 151).
+
+New Spells itself registers the built-in provider `HD.Plugin.H3.NewSpells.Data`
+for the data spells of `DATA_SPELLS.md`, those IDs are taken like any other.

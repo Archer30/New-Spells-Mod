@@ -1359,9 +1359,8 @@ public:
    TSex sex;								 // 0x3D5
    bool IsBiographyCustomized;				 // 0x3D9
    stdString customBiography;				 // 0x3DA
-   char in_spellbook[140];					 // 0x3EA
-   //bool in_spellbook[70];					 // 0x3EA
-   //bool available_spells[70];				 // 0x430
+   bool in_spellbook[70];					 // 0x3EA
+   bool available_spells[70];				 // 0x430
    char stats[4];							 // 0x476
    float aggression;						 // 0x47A
    long value_of_power;						 // 0x47E

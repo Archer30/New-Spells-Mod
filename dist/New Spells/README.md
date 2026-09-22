@@ -126,3 +126,12 @@ and Sokiee. ERA repair, integration, and maintenance: Archer30.
 - Current ERA repair and maintenance: Archer30
 
 Additional spell contributions: Szaman (Hour of Power and Golden Touch).
+
+## Spell ids up to 199 and data spells
+
+This build addresses spell ids up to 199 (see `docs/SPELL_ID_CEILING.md`) and
+lets a mod add battle spells with JSON records only (`docs/DATA_SPELLS.md`,
+`examples/New Spells Sample Pack`). Scripts and plugins receive the events
+`NewSpells.OnBattleCast`, `NewSpells.OnStackSpell` and
+`NewSpells.OnAdventureCast`. Icons, animations and other files of a pack need no
+archive: New Spells pads the icon sheets and serves `Data/NewSpells/Files`.

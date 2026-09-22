@@ -4,6 +4,8 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinimalAdventureProvider", "examples\MinimalAdventureProvider\MinimalAdventureProvider.vcxproj", "{E78E4F9E-E2C3-4A78-BA37-041012B48297}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FortitudeProvider", "examples\FortitudeProvider\FortitudeProvider.vcxproj", "{6F1C3B2A-7D4E-4C5B-9A8F-2E1D5C7B9F41}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AllCallbacksProvider", "tests\AllCallbacksProvider\AllCallbacksProvider.vcxproj", "{90D73C6D-2382-48AF-A2B7-E3433DA90C29}"
 EndProject
 Global
@@ -16,6 +18,10 @@ Global
 		{E78E4F9E-E2C3-4A78-BA37-041012B48297}.Debug|Win32.Build.0 = Debug|Win32
 		{E78E4F9E-E2C3-4A78-BA37-041012B48297}.Release|Win32.ActiveCfg = Release|Win32
 		{E78E4F9E-E2C3-4A78-BA37-041012B48297}.Release|Win32.Build.0 = Release|Win32
+		{6F1C3B2A-7D4E-4C5B-9A8F-2E1D5C7B9F41}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6F1C3B2A-7D4E-4C5B-9A8F-2E1D5C7B9F41}.Debug|Win32.Build.0 = Debug|Win32
+		{6F1C3B2A-7D4E-4C5B-9A8F-2E1D5C7B9F41}.Release|Win32.ActiveCfg = Release|Win32
+		{6F1C3B2A-7D4E-4C5B-9A8F-2E1D5C7B9F41}.Release|Win32.Build.0 = Release|Win32
 		{90D73C6D-2382-48AF-A2B7-E3433DA90C29}.Debug|Win32.ActiveCfg = Debug|Win32
 		{90D73C6D-2382-48AF-A2B7-E3433DA90C29}.Debug|Win32.Build.0 = Debug|Win32
 		{90D73C6D-2382-48AF-A2B7-E3433DA90C29}.Release|Win32.ActiveCfg = Release|Win32

@@ -1,0 +1,15 @@
+ZVSE2
+; New Spells Sample Pack: the three script hooks of Fortitude (150).
+; New Spells calls them with x1 spell, x2 side, x3 hex or stack, x4 mastery, x5 power or applied flag, x6 creature flag or hero.
+
+!?FU(SamplePack_OnCast);
+!#VA(spell:x) (side:x) (hex:x) (mastery:x) (power:x) (creature:x);
+!!IF:L^Fortitude cast by side %(side) on hex %(hex) at mastery %(mastery).^;
+
+!?FU(SamplePack_OnApply);
+!#VA(spell:x) (side:x) (stack:x) (mastery:x) (applied:x) (hero:x);
+!!IF:L^Fortitude applied to stack %(stack) of side %(side).^;
+
+!?FU(SamplePack_OnRemove);
+!#VA(spell:x) (side:x) (stack:x) (mastery:x) (applied:x) (hero:x);
+!!IF:L^Fortitude wore off stack %(stack) of side %(side).^;
