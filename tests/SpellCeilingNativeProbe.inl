@@ -52,10 +52,110 @@ void __stdcall ceilingProbeAfterPlugins(Era::TEvent* e) { ceilingProbeTranslatio
 void __stdcall ceilingProbeAfterWog(Era::TEvent* e) { ceilingProbeTranslations("OnAfterWoG"); }
 void __stdcall ceilingProbeBeforeErm(Era::TEvent* e) { ceilingProbeTranslations("OnBeforeErm"); }
 
+namespace CeilingProbe
+{
+   void CheckRegressions()
+   {
+      // Follow the installed mage-guild loop through the replacement compare.
+      LoHook* loop = (LoHook*)_P->GetLastPatchAt(0x5BEA6E);
+      LoHook* compare = (LoHook*)_P->GetLastPatchAt(0x5BEA2A);
+      HookContext context = {};
+      context.edi = 1;
+      CEILING_CHECK(nsSpellBound(loop, &context) == NO_EXEC_DEFAULT);
+      CEILING_CHECK(context.return_address == compare->GetAddress());
+      CEILING_CHECK(nsSpellBound(compare, &context) == NO_EXEC_DEFAULT);
+      CEILING_CHECK(context.return_address == 0x5BEA36);
+      context.edi = activeSpellCount;
+      nsSpellBound(loop, &context);
+      CEILING_CHECK(context.return_address == 0x5BEA73);
+
+      // Clearing either duration storage must leave the following queue intact.
+      unsigned char bytes[sizeof(army)] = {};
+      army* stack = (army*)bytes;
+      memset(&stack->SpellInfluenceQueue, 0x5A, sizeof(stack->SpellInfluenceQueue));
+      unsigned char queue[sizeof(stack->SpellInfluenceQueue)];
+      memcpy(queue, &stack->SpellInfluenceQueue, sizeof(queue));
+      const int spells[] = {45, 95, 161, 162, 199};
+      for (int i = 0; i < 5; ++i)
+      {
+         nsDuration(stack, spells[i]) = 3;
+         context = {};
+         context.esi = (int)stack;
+         context.eax = spells[i] - SPELL_WEAKNESS;
+         context.edx = 0;
+         nsSpellBound((LoHook*)_P->GetLastPatchAt(0x444260), &context);
+         CEILING_CHECK(nsDuration(stack, spells[i]) == 0);
+         CEILING_CHECK(memcmp(queue, &stack->SpellInfluenceQueue, sizeof(queue)) == 0);
+      }
+      nsReleaseDummy(stack);
+
+      Game* savedGame = pGame;
+      Game* game = (Game*)calloc(1, sizeof(Game));
+      CEILING_CHECK(game != 0);
+      pGame = game;
+
+      // Exercise the public AI query and real engine status removal for data spells.
+      CombatManager* savedCombat = pCombatManager;
+      CombatManager* battle = (CombatManager*)calloc(1, sizeof(CombatManager));
+      CEILING_CHECK(battle != 0);
+      pCombatManager = battle;
+      unsigned char opponent[sizeof(armyGroup)] = {};
+      battle->hero[0] = &game->hero[0];
+      battle->army[1] = (_Army_*)opponent;
+      army* target = (army*)&battle->stack[0][0];
+      target->group = 0; target->index = 0;
+      target->numTroops = target->origNumTroops = 10;
+      target->origHitPoints = target->sMonInfo.hitPoints = 20;
+      target->poison_penalty = 1.0f;
+      const bool savedEvents = nsScriptEvents;
+      nsScriptEvents = false;
+      for (int i = 0; i < NS_DATA_SLOTS; ++i)
+      {
+         NsDataSpell& d = nsDataSpells[i];
+         if (d.kind != NS_KIND_ENCHANTMENT || !isActiveExternalSpell(d.id))
+            continue;
+         const unsigned char disabled = nsDisabledFlag(game, d.id);
+         AiSpellStateV1 state = {}; state.size = sizeof(state);
+         game->DisableSpell((SpellID)d.id, true);
+         CEILING_CHECK(queryHeroSpellForAi(battle, 0, d.id, &state) == 1 && state.enabled == 0);
+         game->DisableSpell((SpellID)d.id, false);
+         if (d.id >= NS_DISABLED_SLOTS) ((unsigned char*)game)[4 + d.id] = 1;
+         CEILING_CHECK(queryHeroSpellForAi(battle, 0, d.id, &state) == 1 && state.enabled == 1);
+         nsDisabledFlag(game, d.id) = disabled;
+
+         // The sample's optional ERM functions belong to scenario scripts.
+         char apply[64], remove[64];
+         memcpy(apply, d.scriptOnApply, sizeof(apply));
+         memcpy(remove, d.scriptOnRemove, sizeof(remove));
+         d.scriptOnApply[0] = d.scriptOnRemove[0] = 0;
+         target->SetSpellInfluence((SpellID)d.id, 3, 2, 0);
+         CEILING_CHECK(nsDuration(target, d.id) == 3 && target->SpellInfluenceQueue.size == 1);
+         target->CancelIndividualSpell(d.id);
+         CEILING_CHECK(nsDuration(target, d.id) == 0 && target->SpellInfluenceQueue.size == 0);
+         CEILING_CHECK(target->numSpellInfluences == 0 && target->sMonInfo.hitPoints == 20);
+         if (d.id >= NS_DURATION_SLOTS)
+         {
+            target->SetSpellInfluence((SpellID)d.id, 1, 2, 0);
+            nsNewRoundDurationsEx(target);
+            CEILING_CHECK(nsDuration(target, d.id) == 0 && target->SpellInfluenceQueue.size == 0);
+         }
+         memcpy(d.scriptOnApply, apply, sizeof(apply));
+         memcpy(d.scriptOnRemove, remove, sizeof(remove));
+      }
+      nsScriptEvents = savedEvents;
+      pCombatManager = savedCombat;
+      free(battle);
+      pGame = savedGame;
+      free(game);
+   }
+}
+
 void RunCeilingNativeProbe()
 {
    char text[256];
    ceilingProbeTranslations("exe init hook");
+
+   CeilingProbe::CheckRegressions();
 
    // Spell count and byte-bound compare sites.
    CEILING_CHECK(activeSpellCount >= DEFAULT_SPELLS_NUM && activeSpellCount <= WOG_SPELLS_MAX);

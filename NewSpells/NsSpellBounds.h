@@ -41,7 +41,7 @@ const NsBoundSite nsBoundSites[] =
    {0x4C170B,  8, REG_EAX, false,   0, false, NS_JL, 0x4C16C7, 0x4C1713, NS_REPLAY_STORE_EBP_EAX, -0x10},  // pyramids
    {0x5012B5,  8, REG_EAX, false,   0, false, NS_JL, 0x50127A, 0x5012BD, NS_REPLAY_STORE_EBP_EAX, 0x0C},   // Scholar map object
    {0x5BEA2A,  5, REG_EDI, false,   0, false, NS_JB, 0x5BEA36, 0x5BEA2F, NS_REPLAY_NONE, 0},               // mage guild
-   {0x5BEA6E,  5, REG_EDI, false,   0, false, NS_JL, 0x5BEA2D, 0x5BEA73, NS_REPLAY_NONE, 0},
+   {0x5BEA6E,  5, REG_EDI, false,   0, false, NS_JL, 0x5BEA2A, 0x5BEA73, NS_REPLAY_NONE, 0},
    {0x5BEAAB,  5, REG_ESI, false,   0, false, NS_JB, 0x5BEAB8, 0x5BEAB0, NS_REPLAY_NONE, 0},
    {0x5BEB46,  8, REG_ESI, false,   0, false, NS_JB, 0x5BEB56, 0x5BEB4E, NS_REPLAY_STORE_EDX_EAX4_ESI, 0},
    {0x5BEB6F, 11, REG_ESI, false,   0, false, NS_JL, 0x5BEC40, 0x5BEB7A, NS_REPLAY_STORE_EAX_ECX, 0},
@@ -100,7 +100,8 @@ int __stdcall nsSpellBound(LoHook* h, HookContext* c)
       break;
    case NS_REPLAY_RESET_SWITCH:
       *(int*)(c->esi + 0x194) = c->edx;
-      *(int*)(c->esi + c->eax * 4 + 0x24C) = c->edi;
+      // EAX is spellId - SPELL_WEAKNESS at this switch.
+      nsDuration((army*)c->esi, c->eax + SPELL_WEAKNESS) = c->edi;
       break;
    default:
       break;

@@ -2630,9 +2630,7 @@ int32_t __stdcall queryHeroSpellForAi(const void* combatManager,
       return 0;
 
    result.known = heroAvailableSpell(Hero, spellId) != 0;
-   // New Spells moves the complete 140-entry disabled-spell array to Game+4.
-   result.enabled = NewSpellsAiInteropDetail::
-      SpellEnabledFromUnifiedGameState(pGame, spellId);
+   result.enabled = !pGame->SpellDisabled(static_cast<SpellID>(spellId));
    result.mastery = mastery;
    result.effectiveManaCost = Hero->GetManaCost(
       spellId, opponentArmy, battle->spec_terr_type);

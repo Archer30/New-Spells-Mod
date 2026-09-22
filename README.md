@@ -27,7 +27,7 @@ converter, plus Python 3 for the build helper. The release project uses the curr
 The solution builds `Release/NewSpells.dll` for the game,
 `Release/NewSpellsEditor.dll` for the ERA map editor, and
 `Release/NewSpellsExpansion.dll` for the optional external spell pack. All
-projects target Win32 with the `v143` toolset and Windows SDK 10.
+projects target Win32 with the XP-compatible `v141_xp` toolset.
 
 `dist/New Spells` contains the ERA package resources and metadata. A source
 checkout needs the built DLLs and debug maps added before installation; the
