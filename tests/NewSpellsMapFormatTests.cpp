@@ -53,24 +53,6 @@ bool AiInteropContractIsUsable()
       state.currentMana == 37;
 }
 
-bool AiInteropUsesUnifiedDisabledSpellArray()
-{
-   unsigned char game[256] = {};
-
-   // Set contradictory values at the maintained Game+4 layout and the old
-   // stock Game+0x4A layout.  Custom spell queries must follow Game+4.
-   game[4 + 82] = 1;
-   game[0x4A + 82] = 0;
-   game[4 + 95] = 0;
-   game[0x4A + 95] = 1;
-
-   return NewSpellsAiInteropDetail::kGameDisabledSpellsOffset == 4u &&
-      NewSpellsAiInteropDetail::SpellEnabledFromUnifiedGameState(
-         game, 82) == 0 &&
-      NewSpellsAiInteropDetail::SpellEnabledFromUnifiedGameState(
-         game, 95) == 1;
-}
-
 int32_t __stdcall AdventureFixture(NewSpellsAdventureContextV1* const context)
 {
    return context && context->size == sizeof(*context) &&
@@ -187,8 +169,6 @@ int main(int argc, char** argv)
 {
    if (!AiInteropContractIsUsable())
       return 20;
-   if (!AiInteropUsesUnifiedDisabledSpellArray())
-      return 21;
    if (!ProviderInteropContractIsUsable())
       return 22;
 

@@ -15,25 +15,47 @@ translation keys must be used in both cases. The core owns
 
 ## Spell ceiling probe
 
-`tests/ProbeSpellCeiling.ps1` starts a probe build of the core in a disposable
-game copy under `work/` and reads the result from `Debug/Era/log.txt` after it
-closes the game (ERA writes the log at exit). Build the probe with
-`-p:CeilingNativeProbe=true` into `work/ceiling-probe-build` and pass the
-expected spell count and number of data spells:
+Prepare a disposable ERA 3.9.24+ game copy at `work/era3924`, with WoG and
+the current `dist/New Spells` resources installed. The probe may run only under
+the repository's `work/` directory. It reads `Debug/Era/log.txt` after closing
+the game because ERA writes that log at exit.
+
+Build and run the repeatable regression fixture:
+
+```powershell
+python tools/build_release.py NewSpells/NewSpells.vcxproj work/ceiling-probe-build --ceiling-native-probe
+& tests\InvokeSpellRegression.ps1 -GameDirectory work\era3924
+```
+
+The runner creates a temporary mod from the checked-in sample pack, adding a
+copy of its enchantment at ID 199 beside ID 150. It uses a fixed mod list and
+requires 200 spell slots, both active enchantments, and an explicit fixture
+coverage marker from the probe. The DLL/debug map and original mod list are
+restored even on failure; the generated fixture is archived under `backups/`.
+Probe DLLs and fixture mods must never be packaged.
+
+The named regression groups cover mage-guild hook targets, duration clearing
+without queue corruption, temporary-stack lifetime (including 96 simultaneous
+copies and repeated address reuse), disabled flags across IDs 139/140, and
+the actual AI query plus effect application, cancellation and expiration.
+Failure logs include the group, condition and source line.
+
+For checks against a different installed configuration, use the lower-level
+runner and specify its expected counts:
 
 ```powershell
 & tests\ProbeSpellCeiling.ps1 -GameDirectory work\era3924 -ExpectedSpellCount 96
 & tests\ProbeSpellCeiling.ps1 -GameDirectory work\era3924 -ExpectedSpellCount 151 -ExpectedDataSpells 1
 ```
 
-The core needs ERA 3.9.24 or newer: on ERA 3.9.10 its ERA binding calls exports
-that do not exist there (`CreatePlugin`, `WriteLog`, `trStatic`), the DLL fails to
-load and ERA reports "Failed to load DLL".
+The second command expects `examples/New Spells Sample Pack` installed below
+New Spells in `Mods/list.txt`. AI/effect tests in this mode cover only the
+installed active enchantments; the log reports that coverage explicitly.
 
-The second form expects `examples/New Spells Sample Pack` installed below New
-Spells in `Mods/list.txt`. In `Mods/list.txt` a mod listed lower wins for files
-of the same name, Advanced Classes Mod ships a placeholder `NewSpells.dll`, so
-New Spells must be listed below it.
+On ERA 3.9.10 the core cannot load because its ERA binding calls exports that
+do not exist there (`CreatePlugin`, `WriteLog`, `trStatic`). In `Mods/list.txt`,
+a mod listed lower wins for files of the same name. Advanced Classes Mod ships
+a placeholder `NewSpells.dll`, so New Spells must be listed below it.
 
 ## Startup verification
 

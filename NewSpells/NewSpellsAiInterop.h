@@ -54,20 +54,6 @@ static_assert(sizeof(NewSpellsAiInteropV1) == 16,
 static_assert(offsetof(NewSpellsAiInteropV1, QueryHeroSpell) == 12,
    "New Spells AI provider callback offset mismatch");
 
-namespace NewSpellsAiInteropDetail
-{
-static const size_t kGameDisabledSpellsOffset = 4u;
-
-inline int32_t SpellEnabledFromUnifiedGameState(
-   const void* const game, const int32_t spellId)
-{
-   const uint8_t* const bytes = static_cast<const uint8_t*>(game);
-   return bytes && spellId >= 0
-      ? (bytes[kGameDisabledSpellsOffset +
-            static_cast<size_t>(spellId)] == 0 ? 1 : 0)
-      : 0;
-}
-}
 #endif
 
 #endif

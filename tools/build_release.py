@@ -11,6 +11,7 @@ probe = parser.add_mutually_exclusive_group()
 probe.add_argument('--native-probe', action='store_true')
 probe.add_argument('--bmg-native-probe', action='store_true')
 probe.add_argument('--bmg-baseline-probe', action='store_true')
+probe.add_argument('--ceiling-native-probe', action='store_true')
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 msbuild = Path(r'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe')
@@ -23,6 +24,8 @@ if args.native_probe:
     command.append('/p:BlizzardNativeProbe=true')
 if args.bmg_native_probe:
     command.append('/p:BmgNativeProbe=true')
+if args.ceiling_native_probe:
+    command.append('/p:CeilingNativeProbe=true')
 if args.bmg_baseline_probe:
     command.append('/p:BmgBaselineProbe=true')
 # Some launch environments contain both PATH and Path. The MSBuild host-tool

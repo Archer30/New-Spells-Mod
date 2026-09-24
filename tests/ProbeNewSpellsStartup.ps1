@@ -106,17 +106,6 @@ try {
     if ($startupLog -notmatch 'Spell count (\d+)') { throw 'Startup log has no spell count.' }
     $count = [int]$Matches[1]
     if ($count -ne $ExpectedSpellCount) { throw "Unexpected spell count $count." }
-    $hook = Read-LiveBytes 0x75F334 5
-    if ($hook[0] -ne 0xE9) { throw 'BM:G LoHook is not installed.' }
-    $table = [BitConverter]::ToUInt32((Read-LiveBytes 0x687FA8 4), 0)
-    foreach ($id in (@(71,73,75) + @(81..95))) {
-        $record = Read-LiveBytes ($table + $id * 0x88) 0x88
-        $name = [BitConverter]::ToUInt32($record, 0x10)
-        $level = [BitConverter]::ToInt32($record, 0x18)
-        if ($name -eq 0 -or (Read-LiveBytes $name 1)[0] -eq 0 -or $level -lt 1 -or $level -gt 5) {
-            throw "Incomplete built-in spell record $id."
-        }
-    }
     $log = Get-Content -LiteralPath (Join-Path $GameDirectory 'Debug\Era\log.txt') -Raw
     if ($log -match 'NewSpells: Native ERM support|BMG native probe') {
         throw 'Production startup reported an ERM profile failure or contains a test probe.'

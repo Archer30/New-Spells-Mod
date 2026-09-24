@@ -20,6 +20,20 @@ $modListPath = Join-Path $sandbox 'Mods\list.txt'
 $modListBefore = [IO.File]::ReadAllBytes($modListPath)
 $logPath = Join-Path $sandbox 'Debug\Era\log.txt'
 $process = $null
+function Restore-ProbeFile([string] $Source, [string] $Destination) {
+    for ($attempt = 0; ; ++$attempt) {
+        try {
+            [IO.File]::Copy($Source, $Destination, $true)
+            return
+        }
+        catch {
+            # A game shutdown can briefly retain a mapped DLL after exit.
+            $code = $_.Exception.GetBaseException().HResult -band 0xFFFF
+            if (($code -ne 32 -and $code -ne 33) -or $attempt -ge 20) { throw }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+}
 foreach ($entry in $entries) {
     $entry.Path = Join-Path $sandbox ('Mods\New Spells\' + $entry.Target)
     $entry.Backup = Join-Path $backup $entry.Target
@@ -31,7 +45,10 @@ try {
         New-Item -ItemType Directory -Path (Split-Path -Parent $entry.Path) -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $ProbeBuild $entry.Source) -Destination $entry.Path -Force
     }
-    if (Test-Path -LiteralPath $logPath) { Remove-Item -LiteralPath $logPath -Force }
+    if (Test-Path -LiteralPath $logPath) {
+        Copy-Item -LiteralPath $logPath -Destination (Join-Path $backup 'era-log-before.txt')
+        Remove-Item -LiteralPath $logPath -Force
+    }
     $process = Start-Process -FilePath (Join-Path $sandbox 'h3era.exe') -WorkingDirectory $sandbox -WindowStyle Hidden -PassThru
     Start-Sleep -Seconds $StartupSeconds
     $process.Refresh()
@@ -66,19 +83,23 @@ try {
     if ($log -match 'spell bound not hooked|site not hooked|External spell activation|registration of .* was rejected') {
         throw "Startup log reports a hook or activation failure: $($Matches[0])"
     }
-    Write-Output "PASS: $checks native checks; spell count $count; $data data spell(s)."
 }
 finally {
-    if ($process -and -not $process.HasExited) {
-        $process.CloseMainWindow() | Out-Null
-        if (-not $process.WaitForExit(5000)) { Stop-Process -Id $process.Id; $process.WaitForExit() }
+    try {
+        if ($process -and -not $process.HasExited) {
+            $process.CloseMainWindow() | Out-Null
+            if (-not $process.WaitForExit(5000)) { Stop-Process -Id $process.Id; $process.WaitForExit() }
+        }
+        foreach ($entry in $entries) {
+            if (Test-Path -LiteralPath $entry.Backup) { Restore-ProbeFile $entry.Backup $entry.Path }
+        }
     }
-    foreach ($entry in $entries) {
-        if (Test-Path -LiteralPath $entry.Backup) { Copy-Item -LiteralPath $entry.Backup -Destination $entry.Path -Force }
-    }
-    $modListAfter = [IO.File]::ReadAllBytes($modListPath)
-    if ([Convert]::ToBase64String($modListBefore) -ne [Convert]::ToBase64String($modListAfter)) {
-        [IO.File]::WriteAllBytes($modListPath, $modListBefore)
-        Write-Warning 'Game startup changed Mods/list.txt (crash-loop protection); the file was restored.'
+    finally {
+        $modListAfter = [IO.File]::ReadAllBytes($modListPath)
+        if ([Convert]::ToBase64String($modListBefore) -ne [Convert]::ToBase64String($modListAfter)) {
+            [IO.File]::WriteAllBytes($modListPath, $modListBefore)
+            Write-Warning 'Game startup changed Mods/list.txt (crash-loop protection); the file was restored.'
+        }
     }
 }
+Write-Output "PASS: $checks native checks; spell count $count; $data data spell(s)."

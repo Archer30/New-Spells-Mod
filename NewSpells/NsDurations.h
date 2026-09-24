@@ -1,39 +1,30 @@
 #pragma once
 
+#include <map>
+
 const int NS_DURATION_SLOTS = 162;
 const int NS_DURATIONS_EX = SPELLS_MAX - NS_DURATION_SLOTS;
-const int NS_DUMMY_STACKS = 64;
 
 bool isRealArmy(const army* Army);
 
 int nsDurationsEx[2][21][NS_DURATIONS_EX];
 struct NsDummyDurations
 {
-   army* Army;
    int values[NS_DURATIONS_EX];
 };
-NsDummyDurations nsDummyDurations[NS_DUMMY_STACKS];
-int nsDummyNext;
+// Entries live until the corresponding temporary stack is destroyed. Map nodes
+// keep duration references valid while other AI copies are created or released.
+std::map<army*, NsDummyDurations> nsDummyDurations;
 int nsDurationSink;
 
 NsDummyDurations& nsDummySlot(army* Army)
 {
-   for (int i = 0; i < NS_DUMMY_STACKS; ++i)
-      if (nsDummyDurations[i].Army == Army)
-         return nsDummyDurations[i];
-
-   NsDummyDurations& slot = nsDummyDurations[nsDummyNext];
-   nsDummyNext = (nsDummyNext + 1) % NS_DUMMY_STACKS;
-   slot.Army = Army;
-   memset(slot.values, 0, sizeof(slot.values));
-   return slot;
+   return nsDummyDurations[Army]; // A new entry is value-initialized to zero.
 }
 
 void nsReleaseDummy(army* Army)
 {
-   for (int i = 0; i < NS_DUMMY_STACKS; ++i)
-      if (nsDummyDurations[i].Army == Army)
-         nsDummyDurations[i].Army = 0;
+   nsDummyDurations.erase(Army);
 }
 
 inline int& nsDuration(army* Army, int spell)
@@ -64,8 +55,7 @@ inline bool nsHasDurationsEx()
 void nsClearDurationsEx()
 {
    memset(nsDurationsEx, 0, sizeof(nsDurationsEx));
-   memset(nsDummyDurations, 0, sizeof(nsDummyDurations));
-   nsDummyNext = 0;
+   nsDummyDurations.clear();
 }
 
 // AI value: "mov eax, [ebx + ecx*4 + 0x198]" then test eax, eax

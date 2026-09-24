@@ -2,19 +2,20 @@
 namespace CeilingProbe
 {
    int checks = 0;
+   const char* testName = "startup";
 
-   void Check(bool condition, int line)
+   void Check(bool condition, const char* expression, int line)
    {
       ++checks;
       if (!condition)
       {
-         char text[128];
-         sprintf_s(text, "FAIL line %d after %d checks", line, checks);
+         char text[512];
+         sprintf_s(text, "FAIL [%s] %s (line %d, check %d)", testName, expression, line, checks);
          Era::WriteLog("Ceiling native probe", "Result", text);
          RaiseException(0xE0420214, 0, 0, 0);
       }
    }
-#define CEILING_CHECK(x) CeilingProbe::Check(!!(x), __LINE__)
+#define CEILING_CHECK(x) CeilingProbe::Check(!!(x), #x, __LINE__)
 
    bool IsJump(int address)
    {
@@ -54,11 +55,12 @@ void __stdcall ceilingProbeBeforeErm(Era::TEvent* e) { ceilingProbeTranslations(
 
 namespace CeilingProbe
 {
-   void CheckRegressions()
+   void CheckMageGuild()
    {
-      // Follow the installed mage-guild loop through the replacement compare.
+      testName = "mage-guild loop";
       LoHook* loop = (LoHook*)_P->GetLastPatchAt(0x5BEA6E);
       LoHook* compare = (LoHook*)_P->GetLastPatchAt(0x5BEA2A);
+      CEILING_CHECK(loop && compare);
       HookContext context = {};
       context.edi = 1;
       CEILING_CHECK(nsSpellBound(loop, &context) == NO_EXEC_DEFAULT);
@@ -68,33 +70,74 @@ namespace CeilingProbe
       context.edi = activeSpellCount;
       nsSpellBound(loop, &context);
       CEILING_CHECK(context.return_address == 0x5BEA73);
+   }
 
-      // Clearing either duration storage must leave the following queue intact.
+   void CheckDurationReset()
+   {
+      testName = "duration reset preserves effect queue";
+      LoHook* reset = (LoHook*)_P->GetLastPatchAt(0x444260);
+      CEILING_CHECK(reset != 0);
       unsigned char bytes[sizeof(army)] = {};
       army* stack = (army*)bytes;
       memset(&stack->SpellInfluenceQueue, 0x5A, sizeof(stack->SpellInfluenceQueue));
       unsigned char queue[sizeof(stack->SpellInfluenceQueue)];
       memcpy(queue, &stack->SpellInfluenceQueue, sizeof(queue));
       const int spells[] = {45, 95, 161, 162, 199};
-      for (int i = 0; i < 5; ++i)
+      for (std::size_t i = 0; i < sizeof(spells) / sizeof(spells[0]); ++i)
       {
          nsDuration(stack, spells[i]) = 3;
-         context = {};
+         HookContext context = {};
          context.esi = (int)stack;
          context.eax = spells[i] - SPELL_WEAKNESS;
-         context.edx = 0;
-         nsSpellBound((LoHook*)_P->GetLastPatchAt(0x444260), &context);
+         nsSpellBound(reset, &context);
          CEILING_CHECK(nsDuration(stack, spells[i]) == 0);
          CEILING_CHECK(memcmp(queue, &stack->SpellInfluenceQueue, sizeof(queue)) == 0);
       }
       nsReleaseDummy(stack);
+   }
 
+   void CheckTemporaryDurations()
+   {
+      testName = "temporary-stack lifetime";
+      const int stackCount = 96; // Exceed the former 64-entry rotating table.
+      army* stacks = (army*)calloc(stackCount, sizeof(army));
+      CEILING_CHECK(stacks != 0);
+      int& heldDuration = nsDuration(&stacks[0], 199);
+      heldDuration = 7;
+
+      // A long-lived copy must survive repeated allocation/release of another.
+      for (int i = 0; i < 128; ++i)
+      {
+         nsDuration(&stacks[1], 199) = i + 1;
+         nsReleaseDummy(&stacks[1]);
+      }
+      CEILING_CHECK(nsDuration(&stacks[0], 199) == 7);
+      CEILING_CHECK(heldDuration == 7);
+      CEILING_CHECK(nsDuration(&stacks[1], 199) == 0);
+
+      // Many simultaneous copies must keep independent values and references.
+      for (int i = 1; i < stackCount; ++i)
+      {
+         nsDuration(&stacks[i], 162) = i;
+         nsDuration(&stacks[i], 199) = i + 1;
+      }
+      CEILING_CHECK(heldDuration == 7 && &heldDuration == &nsDuration(&stacks[0], 199));
+      for (int i = 1; i < stackCount; ++i)
+         CEILING_CHECK(nsDuration(&stacks[i], 162) == i && nsDuration(&stacks[i], 199) == i + 1);
+      for (int i = 0; i < stackCount; ++i)
+         nsReleaseDummy(&stacks[i]);
+      CEILING_CHECK(nsDuration(&stacks[0], 162) == 0 && nsDuration(&stacks[0], 199) == 0);
+      nsReleaseDummy(&stacks[0]);
+      free(stacks);
+   }
+
+   void CheckAiAndEffects()
+   {
+      testName = "AI and effect fixture";
       Game* savedGame = pGame;
       Game* game = (Game*)calloc(1, sizeof(Game));
       CEILING_CHECK(game != 0);
       pGame = game;
-
-      // Exercise the public AI query and real engine status removal for data spells.
       CombatManager* savedCombat = pCombatManager;
       CombatManager* battle = (CombatManager*)calloc(1, sizeof(CombatManager));
       CEILING_CHECK(battle != 0);
@@ -107,13 +150,42 @@ namespace CeilingProbe
       target->numTroops = target->origNumTroops = 10;
       target->origHitPoints = target->sMonInfo.hitPoints = 20;
       target->poison_penalty = 1.0f;
+
+      // Exercise the actual accessor at both storage boundaries, independently
+      // of whether a data spell is defined at those IDs.
+      testName = "disabled-flag boundaries";
+      const int ids[] = {82, 95, 139, 140, 199};
+      for (std::size_t i = 0; i < sizeof(ids) / sizeof(ids[0]); ++i)
+      {
+         const int id = ids[i];
+         const unsigned char saved = nsDisabledFlag(game, id);
+         game->DisableSpell((SpellID)id, true);
+         CEILING_CHECK(game->SpellDisabled((SpellID)id));
+         game->DisableSpell((SpellID)id, false);
+         if (id >= NS_DISABLED_SLOTS) ((unsigned char*)game)[4 + id] = 1;
+         CEILING_CHECK(!game->SpellDisabled((SpellID)id));
+         nsDisabledFlag(game, id) = saved;
+      }
+
       const bool savedEvents = nsScriptEvents;
       nsScriptEvents = false;
+      const bool fixture = getJsonInt("NewSpells.Test.CeilingFixture", 0) != 0;
+      if (fixture)
+      {
+         testName = "required regression spells";
+         CEILING_CHECK(isActiveExternalSpell(150) && isActiveExternalSpell(199));
+         CEILING_CHECK(nsDataSpell(150) && nsDataSpell(150)->kind == NS_KIND_ENCHANTMENT);
+         CEILING_CHECK(nsDataSpell(199) && nsDataSpell(199)->kind == NS_KIND_ENCHANTMENT);
+      }
+      int tested = 0;
       for (int i = 0; i < NS_DATA_SLOTS; ++i)
       {
          NsDataSpell& d = nsDataSpells[i];
          if (d.kind != NS_KIND_ENCHANTMENT || !isActiveExternalSpell(d.id))
             continue;
+         char caseName[80];
+         sprintf_s(caseName, "AI query and effect lifecycle, spell %d", d.id);
+         testName = caseName;
          const unsigned char disabled = nsDisabledFlag(game, d.id);
          AiSpellStateV1 state = {}; state.size = sizeof(state);
          game->DisableSpell((SpellID)d.id, true);
@@ -123,7 +195,7 @@ namespace CeilingProbe
          CEILING_CHECK(queryHeroSpellForAi(battle, 0, d.id, &state) == 1 && state.enabled == 1);
          nsDisabledFlag(game, d.id) = disabled;
 
-         // The sample's optional ERM functions belong to scenario scripts.
+         // Optional ERM callbacks belong to scenario scripts, absent at startup.
          char apply[64], remove[64];
          memcpy(apply, d.scriptOnApply, sizeof(apply));
          memcpy(remove, d.scriptOnRemove, sizeof(remove));
@@ -135,18 +207,36 @@ namespace CeilingProbe
          CEILING_CHECK(target->numSpellInfluences == 0 && target->sMonInfo.hitPoints == 20);
          if (d.id >= NS_DURATION_SLOTS)
          {
-            target->SetSpellInfluence((SpellID)d.id, 1, 2, 0);
+            target->SetSpellInfluence((SpellID)d.id, 2, 2, 0);
+            nsNewRoundDurationsEx(target);
+            CEILING_CHECK(nsDuration(target, d.id) == 1 && target->SpellInfluenceQueue.size == 1);
             nsNewRoundDurationsEx(target);
             CEILING_CHECK(nsDuration(target, d.id) == 0 && target->SpellInfluenceQueue.size == 0);
          }
          memcpy(d.scriptOnApply, apply, sizeof(apply));
          memcpy(d.scriptOnRemove, remove, sizeof(remove));
+         ++tested;
       }
+      testName = "data-spell coverage";
+      if (fixture) CEILING_CHECK(tested == 2);
+      char coverage[96];
+      sprintf_s(coverage, "%d active enchantment(s) tested%s", tested,
+         fixture ? " (required regression fixture)" : "");
+      Era::WriteLog("Ceiling native probe", "Coverage", coverage);
       nsScriptEvents = savedEvents;
       pCombatManager = savedCombat;
       free(battle);
       pGame = savedGame;
       free(game);
+   }
+
+   void CheckRegressions()
+   {
+      CheckMageGuild();
+      CheckDurationReset();
+      CheckTemporaryDurations();
+      CheckAiAndEffects();
+      testName = "installed hooks and spell resources";
    }
 }
 
