@@ -133,13 +133,12 @@ with compile-time checks for every critical size and offset. See
 Downloaded comparison archives are preserved outside the repository as described
 in `docs/REPOSITORY_LAYOUT.md`; they are not required to build the plugin.
 
-## Original mod credits
+## Mod credits
 
-- Author: AlexSpl
+- Original Author: AlexSpl
 - Graphics: Rolex
-- ERA adaptation: sokiee, daemon_n
+- ERA adaptation: sokiee, daemon_n, Archer30
 - Russian translation: Panda Bei, daemon_n
-- Original mod languages: English, Russian
-- Current ERA repair and maintenance: Archer30
+- Chinese translation: Archer30
 
 Additional spell contributions: Szaman (Hour of Power and Golden Touch).
